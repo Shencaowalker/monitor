@@ -1,0 +1,11 @@
+groups:
+- name: portalive # 组的名字，在这个文件中必须要唯一
+  rules:
+  - alert: PortDown # 告警的名字，在组中需要唯一
+    expr: consul_catalog_service_node_healthy{service_id=~".*13100"} == 0 # 表达式, 执行结果为true: 表示需要告警
+    for: 5m # 超过多少时间才认为需要告警(即up==0需要持续的时间)
+    labels:
+      severity: warning # 定义标签
+    annotations:
+      summary: "{{ $labels.service_id }} 已恢复"
+      description: "{{ $labels.service_id }} 超过5分钟内无法访问,请及时查看 @Zack"
