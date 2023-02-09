@@ -1,1 +1,2 @@
-1
+joinsight_metrics{timestamp="2023-02-08 21:56:47.690",tid="TID: cf7fbda38ce3497793d3d9975db28f50.360.16758646076820131",tenant="tn_89031",userid="277754159208333312",Interfacetype="TOTAL",state="SUCCESS",timeconsume="0"} 0
+joinsight_metrics{timestamp="2023-02-08 21:56:47.102",tid="TID: cf7fbda38ce3497793d3d9975db28f50.2363.16758646070710049",tenant="tn_89031",userid="277754159208333312",Interfacetype="SQL_TRANSLATE",state="SUCCESS",timeconsume="1"} 1
