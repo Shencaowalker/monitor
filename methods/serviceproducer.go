@@ -147,25 +147,25 @@ func Backproduceconf(config *viper.Viper) error {
 	return error
 }
 
-func AsyncBUpdateNacosStandardConf(config *viper.Viper) {
+func AsyncBUpdateNacosStandardConf(configaddr *(*viper.Viper)) {
 	//在进行 更新之前，先备份之前的配置文件
 	var result string
-	error := Backproduceconf(config)
-	log.Println("back old standard config.ini, sleep " + config.GetString("global.delayupdateseconds") + "s")
-	time.Sleep(time.Duration(config.GetInt("global.delayupdateseconds")) * time.Second)
+	error := Backproduceconf(*configaddr)
+	log.Println("back old standard config.ini, sleep " + (*configaddr).GetString("global.delayupdateseconds") + "s")
+	time.Sleep(time.Duration((*configaddr).GetInt("global.delayupdateseconds")) * time.Second)
 	log.Println("stop sleep,bengin update config.ini")
 	if error != nil {
 		result = error.Error() + " " + "nacos基线配置更新反馈:alarnacos生产者备份old配置失败,更新配置文件失败,配置文件不变"
 	} else {
 		//重新读取配置文件中读取服务列表
-		// log.Println("Reread the configuration file")
-		// config = CreateNewconfiger("./conf/","config", "ini")
-		serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
+		log.Println("Reread the configuration file")
+		(*configaddr) = CreateNewconfiger("./conf/","config", "ini")
+		serviceList := (*configaddr).GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
 		//循环调用接口更新内存中的配置为当先nacos中的生产者信息
 		for i := 0; i < len(serviceList); i++ {
-			Modifyonserviceconf(serviceList[i], config)
+			Modifyonserviceconf(serviceList[i], (*configaddr))
 		}
-		Writebackserviceconf(config)
+		Writebackserviceconf((*configaddr))
 		if error != nil {
 			result = error.Error() + " " + "nacos基线配置更新反馈:alarmnacos生产者备份old配置成功,更新配置文件失败,配置文件不变"
 		} else {
@@ -175,7 +175,7 @@ func AsyncBUpdateNacosStandardConf(config *viper.Viper) {
 	log.Println("执行状态：", result)
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", config.GetString("global.cmbalarminterface")+result, nil)
+	req, err := http.NewRequest("GET", (*configaddr).GetString("global.cmbalarminterface")+result, nil)
 	if err != nil {
 		log.Println("配组告警连接失败。无法得到nacos配置更新状态,请检查。\n")
 		return

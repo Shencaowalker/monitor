@@ -171,7 +171,8 @@ func main() {
 	//调用接口
 	http.HandleFunc("/registered", apis.Registered(config))
 	http.HandleFunc("/downline", apis.Downline(config))
-	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(config))
+	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
+	
 	http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
 
 	//创建指标文件并函数退出后返回
