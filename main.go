@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log_as/apis"
+	"log_as/methods"
 	"net/http"
-
-	"github.com/spf13/viper"
 )
 
 // type ProducerJson struct {
@@ -107,18 +105,19 @@ import (
 
 func main() {
 	//初始化配置句柄
-	config := viper.New()
-	config.AddConfigPath("./conf/") // 文件所在目录
-	config.SetConfigName("config")  // 文件名
-	config.SetConfigType("ini")     // 文件类型
+	// config := viper.New()
+	// config.AddConfigPath("./conf/") // 文件所在目录
+	// config.SetConfigName("config")  // 文件名
+	// config.SetConfigType("ini")     // 文件类型
 
-	if err := config.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			fmt.Println("找不到配置文件..")
-		} else {
-			fmt.Println("配置文件出错..")
-		}
-	}
+	// if err := config.ReadInConfig(); err != nil {
+	// 	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+	// 		fmt.Println("找不到配置文件..")
+	// 	} else {
+	// 		fmt.Println("配置文件出错..")
+	// 	}
+	// }
+	config := methods.CreateNewconfiger("./conf/", "config", "ini")
 
 	// yaml配置文件验证适配
 	// yamlconfig := viper.New()
