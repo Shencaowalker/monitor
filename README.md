@@ -98,5 +98,3 @@ serviceport=8501
     /downlin
         #请求例子  删除consul_exporter_all_10.5.101.3_13100
         http://127.0.0.1:8501/downline?id=consul_exporter_all_10.5.101.3_13100
-
-
