@@ -214,14 +214,20 @@ func main() {
 
 		}
 	}
-
+	deletecmd1 := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
+	err = deletecmd1.Run()
+	if err != nil {
+		fmt.Println("删除 logsmetrics 指标报错 err 继续执行")
+	} else {
+		fmt.Println("DELETE logsmetrics SECCESS")
+	}
 	pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@Status.txt", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
 
 	err = pushcmd.Run()
 	if err != nil {
-		fmt.Println("上传指标报错 err 继续执行")
+		fmt.Println("上传指标  logsmetrics 报错 err 继续执行")
 	} else {
-		fmt.Println("UPLOAD serviceproducer SECCESS")
+		fmt.Println("UPLOAD logsmetrics SECCESS")
 	}
 	// 循环conf/connfig.ini配置文件，跟nacos接口返回的数据做对比，并上报指标
 	// serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
