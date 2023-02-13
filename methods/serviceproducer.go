@@ -51,7 +51,7 @@ func GetserviceproducerlistJson(config *viper.Viper, servicename string) Produce
 		fmt.Println("read resp error,", servicename, "producers read err.\n")
 		return producerjson
 	}
-	
+
 	json.Unmarshal(body, &producerjson)
 	return producerjson
 }
@@ -147,36 +147,38 @@ func Backproduceconf(config *viper.Viper) error {
 	return error
 }
 
-func AsyncBUpdateNacosStandardConf(config *viper.Viper) {
+func AsyncBUpdateNacosStandardConf(configaddr *(*viper.Viper)) {
 	//在进行 更新之前，先备份之前的配置文件
 	var result string
-	error := Backproduceconf(config)
-	log.Println("back old standard config.ini, sleep "+config.GetString("global.delayupdateseconds")+"s")
-	time.Sleep(time.Duration(config.GetInt("global.delayupdateseconds")) * time.Second)
+	error := Backproduceconf(*configaddr)
+	log.Println("back old standard config.ini, sleep " + (*configaddr).GetString("global.delayupdateseconds") + "s")
+	time.Sleep(time.Duration((*configaddr).GetInt("global.delayupdateseconds")) * time.Second)
 	log.Println("stop sleep,bengin update config.ini")
 	if error != nil {
 		result = error.Error() + " " + "nacos基线配置更新反馈:alarnacos生产者备份old配置失败,更新配置文件失败,配置文件不变"
 	} else {
-		//在配置文件中读取服务列表
-		serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
+		//重新读取配置文件中读取服务列表
+		log.Println("Reread the configuration file")
+		(*configaddr) = CreateNewconfiger("./conf/","config", "ini")
+		serviceList := (*configaddr).GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
 		//循环调用接口更新内存中的配置为当先nacos中的生产者信息
 		for i := 0; i < len(serviceList); i++ {
-			Modifyonserviceconf(serviceList[i], config)
+			Modifyonserviceconf(serviceList[i], (*configaddr))
 		}
-		Writebackserviceconf(config)
+		Writebackserviceconf((*configaddr))
 		if error != nil {
 			result = error.Error() + " " + "nacos基线配置更新反馈:alarmnacos生产者备份old配置成功,更新配置文件失败,配置文件不变"
 		} else {
 			result = "nacos基线配置更新反馈:alarmnacos生产者监控备份old配置成功,更新配置文件成功"
 		}
 	}
-	log.Println("执行状态：",result)
+	log.Println("执行状态：", result)
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", config.GetString("global.cmbalarminterface")+result, nil)
+	req, err := http.NewRequest("GET", (*configaddr).GetString("global.cmbalarminterface")+result, nil)
 	if err != nil {
 		log.Println("配组告警连接失败。无法得到nacos配置更新状态,请检查。\n")
-		return 
+		return
 	}
 	log.Println("开始发送更新消息到群组")
 	_, err = client.Do(req)
@@ -187,4 +189,19 @@ func AsyncBUpdateNacosStandardConf(config *viper.Viper) {
 		log.Println("发送成功。\n")
 		return
 	}
+}
+
+func CreateNewconfiger(relativedir string, filename string, file_suffix string) *viper.Viper {
+	config := viper.New()
+	config.AddConfigPath(relativedir) // 文件所在目录
+	config.SetConfigName(filename)    // 文件名
+	config.SetConfigType(file_suffix) // 文件类型
+	if err := config.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			fmt.Println("找不到配置文件..")
+		} else {
+			fmt.Println("配置文件出错..")
+		}
+	}
+	return config
 }
