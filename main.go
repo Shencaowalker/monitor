@@ -176,7 +176,7 @@ func main() {
 	// http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
 
 	//创建指标文件并函数退出后返回
-	serviceStatus, err := os.Create("Status.txt")
+	serviceStatus, err := os.Create("NducerStatus.txt")
 	defer serviceStatus.Close()
 	if err != nil {
 		fmt.Println("文件创建失败", err)
