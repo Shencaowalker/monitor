@@ -232,7 +232,7 @@ func main() {
 	for i := 0; i < len(serviceList); i++ {
 		methods.Contrast(config, serviceList[i], serviceStatus)
 	}
-	methods.UpdateMetrics(config)
+	methods.UpdateMetrics(serviceStatus.Name(), config)
 
 	// onserviceproducerlist := config.GetString("cip.serviceList") // 读取配置
 	// onserviceproducerlist := config.GetStringMapString("jobserver.serviceList") //读取map[string]string

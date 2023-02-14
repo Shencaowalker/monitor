@@ -63,39 +63,39 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 	var aironserviceproducertypesum string
 	var aironserviceproducerhealthycount string
 	if currentcount := len(serviceProducerList); currentcount == currentserviceproducer.Count {
-		aironserviceproducertypesum = "airserviceproducersum{name=\"" + servicename + "\",currentcount=\"" + strconv.Itoa(currentserviceproducer.Count) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + strconv.Itoa(currentcount) + "\"} " + "1" + "\n"
+		aironserviceproducertypesum = config.GetString("global.projectname")+"producersum{name=\"" + servicename + "\",currentcount=\"" + strconv.Itoa(currentserviceproducer.Count) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + strconv.Itoa(currentcount) + "\"} " + "1" + "\n"
 	} else {
-		aironserviceproducertypesum = "airserviceproducersum{name=\"" + servicename + "\",currentcount=\"" + strconv.Itoa(currentserviceproducer.Count) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + strconv.Itoa(currentcount) + "\"} " + "0" + "\n"
+		aironserviceproducertypesum = config.GetString("global.projectname")+"producersum{name=\"" + servicename + "\",currentcount=\"" + strconv.Itoa(currentserviceproducer.Count) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + strconv.Itoa(currentcount) + "\"} " + "0" + "\n"
 	}
 	_, err := serviceStatus.Write([]byte(aironserviceproducertypesum))
 	if err != nil {
-		fmt.Println("写入" + servicename + "airserviceproducercount失败 退出")
+		fmt.Println("写入" + servicename + config.GetString("global.projectname") +"producercount失败 退出")
 		return
 	}
 	for i, j := range serviceProducerList {
 		normalcount, _ := strconv.Atoi(j)
-		aironserviceproducerhealthycount = "aironserviceproducerhealthycount{name=\"" + i + "\",healthytcount=\"0\",normalcount=\"" + j + "\"} " + "0" + "\n"
+		aironserviceproducerhealthycount = config.GetString("global.projectname")+"producerhealthycount{name=\"" + i + "\",healthytcount=\"0\",normalcount=\"" + j + "\"} " + "0" + "\n"
 		for _, k := range currentserviceproducer.ServiceList {
 			if i == k.Name {
 				if normalcount == k.HealthyInstanceCount {
-					aironserviceproducerhealthycount = "aironserviceproducerhealthycount{name=\"" + i + "\",healthytcount=\"" + strconv.Itoa(k.HealthyInstanceCount) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "2" + "\n"
+					aironserviceproducerhealthycount = config.GetString("global.projectname")+"producerhealthycount{name=\"" + i + "\",healthytcount=\"" + strconv.Itoa(k.HealthyInstanceCount) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "2" + "\n"
 					break
 				} else if k.HealthyInstanceCount > 0 {
-					aironserviceproducerhealthycount = "aironserviceproducerhealthycount{name=\"" + i + "\",healthytcount=\"" + strconv.Itoa(k.HealthyInstanceCount) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "1" + "\n"
+					aironserviceproducerhealthycount = config.GetString("global.projectname")+"producerhealthycount{name=\"" + i + "\",healthytcount=\"" + strconv.Itoa(k.HealthyInstanceCount) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "1" + "\n"
 					break
 				}
 			}
 		}
 		_, err = serviceStatus.Write([]byte(aironserviceproducerhealthycount))
 		if err != nil {
-			fmt.Println("写入" + servicename + "aironserviceproducerhealthycount失败 退出")
+			fmt.Println("写入" + servicename + config.GetString("global.projectname")+"producerhealthycount失败 退出")
 			return
 		}
 	}
 }
 
 //更新pushgateway指标信息 改成根据指标来进行
-func UpdateMetrics(config *viper.Viper) {
+func UpdateMetrics(serviceStatusfile string,config *viper.Viper) {
 	deletecmd := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/serviceproducer")
 	err := deletecmd.Run()
 	if err != nil {
@@ -103,7 +103,7 @@ func UpdateMetrics(config *viper.Viper) {
 	} else {
 		fmt.Println("DELETE serviceproducer SECCESS")
 	}
-	pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@Status.txt", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/serviceproducer")
+	pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@"+serviceStatusfile, "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/serviceproducer")
 	err = pushcmd.Run()
 	if err != nil {
 		fmt.Println("上传指标报错 err 继续执行")
