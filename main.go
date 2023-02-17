@@ -169,10 +169,12 @@ func main() {
 	// fmt.Println(servicemetric)
 
 	//调用接口
-	http.HandleFunc("/registered", apis.Registered(config))
-	http.HandleFunc("/downline", apis.Downline(config))
+	http.HandleFunc("/registereditem", apis.RegisteredItem(config))
+	http.HandleFunc("/registeredalarm", apis.RegisteredAlarm(config))
+	http.HandleFunc("/downlineitem", apis.DownlineItems(config))
+	http.HandleFunc("/downlinealarm", apis.DownlineAlarm(config))
+
 	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
-	
 	http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
 
 	//创建指标文件并函数退出后返回
