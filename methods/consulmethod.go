@@ -15,11 +15,11 @@ type Resp struct {
 }
 
 type Registration_nformation struct {
-	Id      string `json:"id"`
-	Group   string `json:"group"`
-	Address string `json:"address"`
-	Port    string `json:"port"`
-	// Tags     string `json:"tags"`
+	Id       string `json:"id"`
+	Group    string `json:"group"`
+	Address  string `json:"address"`
+	Port     string `json:"port"`
+	Tags     string `json:"tags"`
 	Env      string `json:"env"`
 	M_type   string `json:"m_type"`
 	App_type string `json:"App_type"`
@@ -39,7 +39,7 @@ type Registration_Alarm struct {
 }
 
 func ConsulregisterItem(config *viper.Viper, information Registration_nformation) (result Resp) {
-	json_value := "{\"id\": \"" + information.Id + "_" + information.App_type + "_" + information.Address + "_" + information.Port + "\",\"name\": \"" + information.Group + "\",\"address\": \"" + information.Address + "\",\"port\": " + information.Port + ",\"tags\": [\"" + information.Group + "\"],\"meta\":{\"env\":\"" + information.Env + "\",\"m_type\":\"" + information.M_type + "\",\"app\":\"" + information.App_type + "\"},\"checks\": [{\"" + information.M_type + "\": \"" + information.Address + ":" + information.Port + "\", \"interval\": \"60s\"}]}"
+	json_value := "{\"id\": \"" + information.Id + "_" + information.App_type + "_" + information.Address + "_" + information.Port + "\",\"name\": \"" + information.Group + "_" + information.Tags + "\",\"address\": \"" + information.Address + "\",\"port\": " + information.Port + ",\"tags\": [\"" + information.Tags + "\"],\"meta\":{\"env\":\"" + information.Env + "\",\"m_type\":\"" + information.M_type + "\",\"app\":\"" + information.App_type + "\"},\"checks\": [{\"" + information.M_type + "\": \"" + information.Address + ":" + information.Port + "\", \"interval\": \"60s\"}]}"
 	log.Println("注册consul item 的json:" + json_value)
 	registrationcmd := exec.Command("curl", "-XPUT", "-d", json_value, "http://"+config.GetString("global.consulipport")+"/v1/agent/service/register")
 	stdout, _ := registrationcmd.StdoutPipe()
