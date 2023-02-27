@@ -84,13 +84,13 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("wraps ", servicename, "nacos producers url err.\n")
+		fmt.Println("wraps ", servicename, "nacos producers url err.")
 		return producerjson
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Get", servicename, "producers err.\n")
+		fmt.Println("Get", servicename, "producers err.")
 		return producerjson
 	}
 	defer resp.Body.Close()
@@ -98,7 +98,7 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("read resp error,", servicename, "producers read err.\n")
+		fmt.Println("read resp error,", servicename, "producers read err.")
 		return producerjson
 	}
 
@@ -139,7 +139,7 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, latenc
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Get", url, " err.\n")
+		fmt.Println("Get", url, " err.")
 		return loglists
 	}
 	defer resp.Body.Close()
@@ -147,7 +147,7 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, latenc
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("read resp error log read err.\n")
+		fmt.Println("read resp error log read err.")
 		return loglists
 	}
 
