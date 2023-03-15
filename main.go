@@ -204,16 +204,14 @@ func main() {
 	// if err != nil {
 	// 	fmt.Println("文件创建失败", err)
 	// }
+	var values [][]interface{}
 	for _, j := range exp1 {
 		// fmt.Println(i, "   ", j)
 		loglist := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (j.(map[string]interface{})["label_list"]).(map[string]interface{}), j.(map[string]interface{})["latencycollectionseconds"].(string), j.(map[string]interface{})["collectionscopeseconds"].(string))
-		var values [][]interface{}
 		for _, j := range loglist {
 			raw := methods.SplitoneLinetopostgresql(j, "|")
 			values = append(values, raw)
 		}
-		db := methods.InitDB(config)
-		methods.InsertintoDB(db, config, values)
 		// 	var metricone string
 		// 	for _, k := range loglist {
 		// 		// metricsone:=methods.SplitoneLinetometrics(i,j.(map[string]interface{})["label_name"]).([]interface{}),(j.(map[string]interface{})["value_col"]).(string),k,(j.(map[string]interface{})["regex"]).(string))
@@ -313,4 +311,6 @@ func main() {
 		// methods.UpdateMetrics(config)
 
 	}
+	db := methods.InitDB(config)
+	methods.InsertintoDB(db, config, values)
 }
