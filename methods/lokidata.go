@@ -175,3 +175,12 @@ func SplitoneLinetometrics(metricname string, collist []interface{}, value_col s
 	servicemetric = servicemetric[:len(servicemetric)-2] + "\"} " + arrs[drift] + "\n"
 	return servicemetric
 }
+
+func SplitoneLinetopostgresql(line string, re string) []interface{} {
+	var a []interface{}
+	arrs := strings.Split(line, re)
+	for _, j := range arrs {
+		a = append(a, j)
+	}
+	return a
+}

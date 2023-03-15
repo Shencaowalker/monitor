@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log_as/methods"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -142,9 +143,18 @@ func main() {
 	// fmt.Println(yamlconfig.Get("groups.rules"))
 
 	exp1 := config.GetStringMap("logprocessed.Listmetrics")
-	fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_name"]).([]interface{})[0])
-	fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_name"]).([]interface{}))
-	fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_list"]).(map[string]interface{}))
+	// var values = [][]interface{}{
+	// 	{"2023-03-15 11:16:08.239", "TID: 272d9036dab5493c9b3c236d1baf4a88.162.16788501677198303", "tn_106824", "287895605806632960", "QUERY", "{\"cost\":514,\"queryStage\":\"TOTAL\",\"success\":true}"},
+	// 	{"2023-03-15 11:16:08.239", "TID: 272d9036dab5493c9b3c236d1baf4a88.162.16788501677198303", "tn_106824", "287895605806632960", "QUERY", "{\"cost\":514,\"queryStage\":\"TOTAL\",\"success\":true}"},
+	// 	{"2023-03-15 11:16:08.239", "TID: 272d9036dab5493c9b3c236d1baf4a88.162.16788501677198303", "tn_106824", "287895605806632960", "QUERY", "{\"cost\":514,\"queryStage\":\"TOTAL\",\"success\":true}"},
+	// }
+
+	// db := methods.InitDB(config)
+	// methods.InsertintoDB(db, config, values)
+	// loglist:=methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (j.(map[string]interface{})["label_list"]).(map[string]interface{}), j.(map[string]interface{})["latencycollectionseconds"].(string), j.(map[string]interface{})["collectionscopeseconds"].(string))
+
+	// fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_name"]).([]interface{}))
+	// fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_list"]).(map[string]interface{}))
 
 	// var label_list_string string
 	// for i, j := range (exp1["metricsname1"].(map[string]interface{})["label_list"]).(map[string]interface{}) {
@@ -194,105 +204,113 @@ func main() {
 	// if err != nil {
 	// 	fmt.Println("文件创建失败", err)
 	// }
-	// for i, j := range exp1 {
-	// 	// fmt.Println(i, "   ", j)
-	// 	loglist := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (j.(map[string]interface{})["label_list"]).(map[string]interface{}), j.(map[string]interface{})["latencycollectionseconds"].(string), j.(map[string]interface{})["collectionscopeseconds"].(string))
-	// 	var metricone string
-	// 	for _, k := range loglist {
-	// 		// metricsone:=methods.SplitoneLinetometrics(i,j.(map[string]interface{})["label_name"]).([]interface{}),(j.(map[string]interface{})["value_col"]).(string),k,(j.(map[string]interface{})["regex"]).(string))
-	// 		metricone = metricone + methods.SplitoneLinetometrics(i, j.(map[string]interface{})["label_name"].([]interface{}), j.(map[string]interface{})["value_col"].(string), k, j.(map[string]interface{})["regex"].(string))
-	// 	}
-	// 	_, err := serviceStatus.Write([]byte(metricone))
-	// 	if err != nil {
-	// 		fmt.Println("写入" + i + "指标失败 退出")
+	for _, j := range exp1 {
+		// fmt.Println(i, "   ", j)
+		loglist := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (j.(map[string]interface{})["label_list"]).(map[string]interface{}), j.(map[string]interface{})["latencycollectionseconds"].(string), j.(map[string]interface{})["collectionscopeseconds"].(string))
+		var values [][]interface{}
+		for _, j := range loglist {
+			raw := methods.SplitoneLinetopostgresql(j, "|")
+			values = append(values, raw)
+		}
+		db := methods.InitDB(config)
+		methods.InsertintoDB(db, config, values)
+		// 	var metricone string
+		// 	for _, k := range loglist {
+		// 		// metricsone:=methods.SplitoneLinetometrics(i,j.(map[string]interface{})["label_name"]).([]interface{}),(j.(map[string]interface{})["value_col"]).(string),k,(j.(map[string]interface{})["regex"]).(string))
+		// 		metricone = metricone + methods.SplitoneLinetometrics(i, j.(map[string]interface{})["label_name"].([]interface{}), j.(map[string]interface{})["value_col"].(string), k, j.(map[string]interface{})["regex"].(string))
+		// 	}
+		// 	_, err := serviceStatus.Write([]byte(metricone))
+		// 	if err != nil {
+		// 		fmt.Println("写入" + i + "指标失败 退出")
 
-	// 	}
-	// }
-	// deletecmd1 := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
-	// err = deletecmd1.Run()
-	// if err != nil {
-	// 	fmt.Println("删除 logsmetrics 指标报错 err 继续执行")
-	// } else {
-	// 	fmt.Println("DELETE logsmetrics SECCESS")
-	// }
-	// pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@Status.txt", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
+		// 	}
+		// }
+		// deletecmd1 := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
+		// err = deletecmd1.Run()
+		// if err != nil {
+		// 	fmt.Println("删除 logsmetrics 指标报错 err 继续执行")
+		// } else {
+		// 	fmt.Println("DELETE logsmetrics SECCESS")
+		// }
+		// pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@Status.txt", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
 
-	// err = pushcmd.Run()
-	// if err != nil {
-	// 	fmt.Println("上传指标  logsmetrics 报错 err 继续执行")
-	// } else {
-	// 	fmt.Println("UPLOAD logsmetrics SECCESS")
-	// }
-	//#######################################################################################################################
-	// 循环conf/connfig.ini配置文件，跟nacos接口返回的数据做对比，并上报指标
-	// serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
-	// for i := 0; i < len(serviceList); i++ {
-	// 	methods.Contrast(config, serviceList[i], serviceStatus)
-	// }
-	// methods.UpdateMetrics(config)
+		// err = pushcmd.Run()
+		// if err != nil {
+		// 	fmt.Println("上传指标  logsmetrics 报错 err 继续执行")
+		// } else {
+		// 	fmt.Println("UPLOAD logsmetrics SECCESS")
+		// }
+		//#######################################################################################################################
+		// 循环conf/connfig.ini配置文件，跟nacos接口返回的数据做对比，并上报指标
+		// serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
+		// for i := 0; i < len(serviceList); i++ {
+		// 	methods.Contrast(config, serviceList[i], serviceStatus)
+		// }
+		// methods.UpdateMetrics(config)
 
-	// host := config.GetString("cip.serviceList") // 读取配置
-	// host := config.GetStringMapString("jobserver.serviceList") //读取map[string]string
-	// service := config.GetStringMap("test.standard")
-	// fmt.Println(host["arctic"])
-	// fmt.Println(host["arctic"].(map[string]interface{})["providers:com.aloudata.arctic.api.DubboAirDatastoreServiceGrpc___IAirDatastoreService:1.0.0:"])
-	// for i, j := range host["arctic"].(map[string]interface{}) {
-	// 	fmt.Println(i, ",", j)
-	// 	if j == 1.0 {
-	// 		fmt.Printf("%T,%vhhhh", j, j) //float64,1hhhh
-	// 	}
+		// host := config.GetString("cip.serviceList") // 读取配置
+		// host := config.GetStringMapString("jobserver.serviceList") //读取map[string]string
+		// service := config.GetStringMap("test.standard")
+		// fmt.Println(host["arctic"])
+		// fmt.Println(host["arctic"].(map[string]interface{})["providers:com.aloudata.arctic.api.DubboAirDatastoreServiceGrpc___IAirDatastoreService:1.0.0:"])
+		// for i, j := range host["arctic"].(map[string]interface{}) {
+		// 	fmt.Println(i, ",", j)
+		// 	if j == 1.0 {
+		// 		fmt.Printf("%T,%vhhhh", j, j) //float64,1hhhh
+		// 	}
 
-	// }
-	// fmt.Println(host)
+		// }
+		// fmt.Println(host)
 
-	// producerGetUrl := "http://" + config.GetString("global.nacosip") + ":" + config.GetString("global.nacosport") + "/nacos/v1/ns/catalog/services?hasIpCount=true&withInstances=false&pageNo=" + config.GetString("global.pageNo") + "&pageSize=" + config.GetString("global.pageSize") + "&serviceNameParam=providers.*" + "arctic" + "&groupNameParam=&namespaceId=" + config.GetString("global.namespaceId")
-	// fmt.Println(producerGetUrl)
-	// serviceProducerList := config.GetStringMap("test.standard") //map[tse:map[providers:com.alibaba.cloud.dubbo.service.DubboMetadataService:1.0.0:tse:1 providers:com.aloudata.tse.common.service.facade.DataSetFacade:1.0.0::1 providers:com.aloudata.tse.common.service.facade.RpTaskFacade:1.0.0::1 providers:com.aloudata.tse.common.service.facade.TaskFacade:1.0.0::1]]
+		// producerGetUrl := "http://" + config.GetString("global.nacosip") + ":" + config.GetString("global.nacosport") + "/nacos/v1/ns/catalog/services?hasIpCount=true&withInstances=false&pageNo=" + config.GetString("global.pageNo") + "&pageSize=" + config.GetString("global.pageSize") + "&serviceNameParam=providers.*" + "arctic" + "&groupNameParam=&namespaceId=" + config.GetString("global.namespaceId")
+		// fmt.Println(producerGetUrl)
+		// serviceProducerList := config.GetStringMap("test.standard") //map[tse:map[providers:com.alibaba.cloud.dubbo.service.DubboMetadataService:1.0.0:tse:1 providers:com.aloudata.tse.common.service.facade.DataSetFacade:1.0.0::1 providers:com.aloudata.tse.common.service.facade.RpTaskFacade:1.0.0::1 providers:com.aloudata.tse.common.service.facade.TaskFacade:1.0.0::1]]
 
-	// a := getproducerUrl(config, "arctic")
-	// fmt.Println(a)
+		// a := getproducerUrl(config, "arctic")
+		// fmt.Println(a)
 
-	// fmt.Println(len(serviceList), serviceList)
-	// for i := 0; i < len(serviceList); i++ {
-	// 	fmt.Println(serviceList[i])
-	// 	fmt.Println("1111")
-	// 	contrast(serviceProducerList, config, serviceList[i], serviceStatus)
-	//
+		// fmt.Println(len(serviceList), serviceList)
+		// for i := 0; i < len(serviceList); i++ {
+		// 	fmt.Println(serviceList[i])
+		// 	fmt.Println("1111")
+		// 	contrast(serviceProducerList, config, serviceList[i], serviceStatus)
+		//
 
-	// config.WriteConfig()
-	// config.Set("global.pageNo", "2")
-	// config.WriteConfig()
-	// fmt.Println(config.GetString("golbal.pageNo"))
+		// config.WriteConfig()
+		// config.Set("global.pageNo", "2")
+		// config.WriteConfig()
+		// fmt.Println(config.GetString("golbal.pageNo"))
 
-	// 循环conf/connfig.ini配置文件，跟nacos接口返回的数据做对比
-	// serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
-	// fmt.Println(len(serviceList), serviceList)
+		// 循环conf/connfig.ini配置文件，跟nacos接口返回的数据做对比
+		// serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
+		// fmt.Println(len(serviceList), serviceList)
 
-	//备份原始基线数据
-	// error := methods.Backserviceconf("asp", config)
-	// if error != nil {
-	// 	fmt.Println(error)
-	// }
+		//备份原始基线数据
+		// error := methods.Backserviceconf("asp", config)
+		// if error != nil {
+		// 	fmt.Println(error)
+		// }
 
-	//循环调用接口更新内存中的配置为当先nacos中的生产者信息
-	// for i := 0; i < len(serviceList); i++ {
-	// 	methods.Modifyonserviceconf(serviceList[i], config)
-	// }
+		//循环调用接口更新内存中的配置为当先nacos中的生产者信息
+		// for i := 0; i < len(serviceList); i++ {
+		// 	methods.Modifyonserviceconf(serviceList[i], config)
+		// }
 
-	//更新当前配置文件
-	// methods.Writebackserviceconf(config)
+		//更新当前配置文件
+		// methods.Writebackserviceconf(config)
 
-	//循环调用接口得到所有当前环境下的配置
-	// for i := 0; i < len(serviceList); i++ {
-	// 	methods.Modifyonserviceconf(serviceList[i], config)
-	// }
-	// methods.Writebackserviceconf(config)
+		//循环调用接口得到所有当前环境下的配置
+		// for i := 0; i < len(serviceList); i++ {
+		// 	methods.Modifyonserviceconf(serviceList[i], config)
+		// }
+		// methods.Writebackserviceconf(config)
 
-	//循环调用接口得到指标
-	// for i := 0; i < len(serviceList); i++ {
-	// 	methods.Contrast(config, serviceList[i], serviceStatus)
-	// }
+		//循环调用接口得到指标
+		// for i := 0; i < len(serviceList); i++ {
+		// 	methods.Contrast(config, serviceList[i], serviceStatus)
+		// }
 
-	// methods.UpdateMetrics(config)
+		// methods.UpdateMetrics(config)
 
+	}
 }
