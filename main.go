@@ -2,9 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log_as/methods"
-	"os"
-	"os/exec"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -145,9 +142,9 @@ func main() {
 	// fmt.Println(yamlconfig.Get("groups.rules"))
 
 	exp1 := config.GetStringMap("logprocessed.Listmetrics")
-	// fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_name"]).([]interface{})[0])
-	// fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_name"]).([]interface{}))
-	// fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_list"]).(map[string]interface{}))
+	fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_name"]).([]interface{})[0])
+	fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_name"]).([]interface{}))
+	fmt.Println((exp1["metricsname1"].(map[string]interface{})["label_list"]).(map[string]interface{}))
 
 	// var label_list_string string
 	// for i, j := range (exp1["metricsname1"].(map[string]interface{})["label_list"]).(map[string]interface{}) {
@@ -176,16 +173,7 @@ func main() {
 	// http.HandleFunc("/downline", apis.Downline(config))
 	// http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
 	// http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
-
-	//创建指标文件并函数退出后返回
-	serviceStatus, err := os.Create("Status.txt")
-	defer serviceStatus.Close()
-	if err != nil {
-		fmt.Println("文件创建失败", err)
-	}
-
 	// serviceStatus.Write([]byte(servicemetric))
-
 	// pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@Status.txt", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
 
 	// fmt.Println(config.GetString("global.pushgatewayipport"))
@@ -199,36 +187,43 @@ func main() {
 	// methods.Getlogfromloki("10.5.20.35:3100", "pre", "joinsight", "/data/logs/aloudsight_monitor.log", "172800", "172800")
 
 	// methods.SplitoneLinetometrics("metricsname1", (exp1["metricsname1"].(map[string]interface{})["label_name"]).([]interface{}), "col7", "2023-02-02 18:35:08.648|TID: 003e1662dbab4f08aa8eb852bc3e2cee.187.16715026860870069|tn_36510|255804947772211200|QUERY_PRESTO|FAILED|86|123|123", "|")
+	//#######################################################################################################################
+	//创建指标文件并函数退出后返回
+	// serviceStatus, err := os.Create("Status.txt")
+	// defer serviceStatus.Close()
+	// if err != nil {
+	// 	fmt.Println("文件创建失败", err)
+	// }
+	// for i, j := range exp1 {
+	// 	// fmt.Println(i, "   ", j)
+	// 	loglist := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (j.(map[string]interface{})["label_list"]).(map[string]interface{}), j.(map[string]interface{})["latencycollectionseconds"].(string), j.(map[string]interface{})["collectionscopeseconds"].(string))
+	// 	var metricone string
+	// 	for _, k := range loglist {
+	// 		// metricsone:=methods.SplitoneLinetometrics(i,j.(map[string]interface{})["label_name"]).([]interface{}),(j.(map[string]interface{})["value_col"]).(string),k,(j.(map[string]interface{})["regex"]).(string))
+	// 		metricone = metricone + methods.SplitoneLinetometrics(i, j.(map[string]interface{})["label_name"].([]interface{}), j.(map[string]interface{})["value_col"].(string), k, j.(map[string]interface{})["regex"].(string))
+	// 	}
+	// 	_, err := serviceStatus.Write([]byte(metricone))
+	// 	if err != nil {
+	// 		fmt.Println("写入" + i + "指标失败 退出")
 
-	for i, j := range exp1 {
-		// fmt.Println(i, "   ", j)
-		loglist := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (j.(map[string]interface{})["label_list"]).(map[string]interface{}), j.(map[string]interface{})["latencycollectionseconds"].(string), j.(map[string]interface{})["collectionscopeseconds"].(string))
-		var metricone string
-		for _, k := range loglist {
-			// metricsone:=methods.SplitoneLinetometrics(i,j.(map[string]interface{})["label_name"]).([]interface{}),(j.(map[string]interface{})["value_col"]).(string),k,(j.(map[string]interface{})["regex"]).(string))
-			metricone = metricone + methods.SplitoneLinetometrics(i, j.(map[string]interface{})["label_name"].([]interface{}), j.(map[string]interface{})["value_col"].(string), k, j.(map[string]interface{})["regex"].(string))
-		}
-		_, err := serviceStatus.Write([]byte(metricone))
-		if err != nil {
-			fmt.Println("写入" + i + "指标失败 退出")
+	// 	}
+	// }
+	// deletecmd1 := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
+	// err = deletecmd1.Run()
+	// if err != nil {
+	// 	fmt.Println("删除 logsmetrics 指标报错 err 继续执行")
+	// } else {
+	// 	fmt.Println("DELETE logsmetrics SECCESS")
+	// }
+	// pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@Status.txt", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
 
-		}
-	}
-	deletecmd1 := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
-	err = deletecmd1.Run()
-	if err != nil {
-		fmt.Println("删除 logsmetrics 指标报错 err 继续执行")
-	} else {
-		fmt.Println("DELETE logsmetrics SECCESS")
-	}
-	pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@Status.txt", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/logsmetrics")
-
-	err = pushcmd.Run()
-	if err != nil {
-		fmt.Println("上传指标  logsmetrics 报错 err 继续执行")
-	} else {
-		fmt.Println("UPLOAD logsmetrics SECCESS")
-	}
+	// err = pushcmd.Run()
+	// if err != nil {
+	// 	fmt.Println("上传指标  logsmetrics 报错 err 继续执行")
+	// } else {
+	// 	fmt.Println("UPLOAD logsmetrics SECCESS")
+	// }
+	//#######################################################################################################################
 	// 循环conf/connfig.ini配置文件，跟nacos接口返回的数据做对比，并上报指标
 	// serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
 	// for i := 0; i < len(serviceList); i++ {
