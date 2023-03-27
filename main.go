@@ -140,12 +140,15 @@ func main() {
 		fmt.Println("Config file changed:", e.Name)
 	})
 
-	// fmt.Println(yamlconfig.Get("groups.rules"))
+	// fmt.Println(yamlconfig.Get("groups.rules")
 
 	exp1 := config.GetStringMap("logprocessed.Listmetrics")
-	// a := methods.SplitoneJoinsightLinetometrics("joinsight_metrics", (exp1["joinsight_metrics"].(map[string]interface{})["label_name"]).([]interface{}), "cost", "2023-03-27 11:35:08.252|TID: acd254e44ed7411392b9009a5e21f1ce.189.16798881079585459|tn_40428|292960732771778560|QUERY|{\"cost\":254,\"queryStage\":\"SQL_TRANSLATE\",\"success\":true}", "|")
-	a := methods.SplitoneJoinsightLinetometrics("joinsight_metrics", (exp1["joinsight_metrics"].(map[string]interface{})["label_name"]).([]interface{}), "cost", "2023-03-27 11:35:08.252|TID: acd254e44ed7411392b9009a5e21f1ce.189.16798881079585459|tn_40428|292960732771778560|QUERY|{\"cost\":254,\"queryStage\":\"SQL_TRANSLATE\",\"success\":true}", "|")
-	fmt.Println(a)
+	for ii, _ := range exp1 {
+		// a := methods.SplitoneJoinsightLinetometrics("joinsight_metrics", (exp1["joinsight_metrics"].(map[string]interface{})["label_name"]).([]interface{}), "cost", "2023-03-27 11:35:08.252|TID: acd254e44ed7411392b9009a5e21f1ce.189.16798881079585459|tn_40428|292960732771778560|QUERY|{\"cost\":254,\"queryStage\":\"SQL_TRANSLATE\",\"success\":true}", "|")
+		a := methods.SplitoneJoinsightLinetometrics(ii, (exp1[ii].(map[string]interface{})["label_name"]).([]interface{}), (exp1[ii].(map[string]interface{})["values"]).([]interface{}), "2023-03-27 11:35:08.252|TID: acd254e44ed7411392b9009a5e21f1ce.189.16798881079585459|tn_40428|292960732771778560|QUERY|{\"cost\":254,\"queryStage\":\"SQL_TRANSLATE\",\"success\":true}", "|")
+		fmt.Println(a)
+	}
+
 	// var values = [][]interface{}{
 	// 	{"2023-03-15 11:16:08.239", "TID: 272d9036dab5493c9b3c236d1baf4a88.162.16788501677198303", "tn_106824", "287895605806632960", "QUERY", "{\"cost\":514,\"queryStage\":\"TOTAL\",\"success\":true}"},
 	// 	{"2023-03-15 11:16:08.239", "TID: 272d9036dab5493c9b3c236d1baf4a88.162.16788501677198303", "tn_106824", "287895605806632960", "QUERY", "{\"cost\":514,\"queryStage\":\"TOTAL\",\"success\":true}"},

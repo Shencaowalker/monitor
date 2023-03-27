@@ -177,13 +177,13 @@ func SplitoneLinetometrics(metricname string, collist []interface{}, value_col s
 	return servicemetric
 }
 
-func SplitoneJoinsightLinetometrics(metricname string, collist []interface{}, value_col string, line string, re string) string {
+func SplitoneJoinsightLinetometrics(metricname string, collist []interface{}, value_cols []interface{}, line string, re string) string {
 	arrs := strings.Split(line, re)
+	var servicemetrics string
+	var event map[string]interface{}
 	servicemetric := metricname + "{"
-	var value_value string
 	for i, j := range collist {
 		if j.(string) == "jsoncontent" {
-			var event map[string]interface{}
 			if err := json.Unmarshal([]byte(arrs[i]), &event); err != nil {
 				fmt.Println("json Unmarshal error!")
 			}
@@ -191,13 +191,14 @@ func SplitoneJoinsightLinetometrics(metricname string, collist []interface{}, va
 			for k, v := range event {
 				servicemetric = servicemetric + k + "=\"" + fmt.Sprintf("%v", v) + "\","
 			}
-			value_value = fmt.Sprintf("%v", event[value_col])
 			continue
 		}
 		servicemetric = servicemetric + j.(string) + "=\"" + arrs[i] + "\","
 	}
-	servicemetric = servicemetric[:len(servicemetric)-2] + "\"} " + value_value + "\n"
-	return servicemetric
+	for _, jj := range value_cols {
+		servicemetrics += servicemetric[:len(servicemetric)-2] + "\"} " + fmt.Sprintf("%v", event[jj.(string)]) + "\n"
+	}
+	return servicemetrics
 }
 
 func SplitoneLinetopostgresql(line string, re string) []interface{} {
