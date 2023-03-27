@@ -128,6 +128,7 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, latenc
 		a = a + i + "=\"" + j.(string) + "\","
 	}
 	url := "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit=8000"
+	fmt.Println(url)
 	// url := "http://" + lokiipport + "/loki/api/v1/query_range?query={job=\"" + "chaos" + "\"}&start=1672816117813000000&end=1672902517813000000&limit=8000"
 	client := &http.Client{}
 	var lokiquery_range LokiQuery_range
