@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log_as/methods"
-	"os"
+	"log_as/apis"
+	"net/http"
 
 	"github.com/spf13/viper"
 )
@@ -170,17 +170,27 @@ func main() {
 	// fmt.Println(servicemetric)
 
 	//调用接口
-	// http.HandleFunc("/registered", apis.Registered(config))
-	// http.HandleFunc("/downline", apis.Downline(config))
-	// http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
-	// http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
+	http.HandleFunc("/registered", apis.Registered(config))
+	http.HandleFunc("/downline", apis.Downline(config))
+	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
+	http.HandleFunc("/nacosproductupload", apis.NacosProductUpload(config))
+	http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
 
 	//创建指标文件并函数退出后返回
-	serviceStatus, err := os.Create("NducerStatus.txt")
-	defer serviceStatus.Close()
-	if err != nil {
-		fmt.Println("文件创建失败", err)
-	}
+
+	/*
+		serviceStatus, err := os.Create("NducerStatus.txt")
+		defer serviceStatus.Close()
+		if err != nil {
+			fmt.Println("文件创建失败", err)
+		}
+		serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
+		for i := 0; i < len(serviceList); i++ {
+			methods.Contrast(config, serviceList[i], serviceStatus)
+		}
+		methods.UpdateMetrics(serviceStatus.Name(), config)
+
+	*/
 
 	// serviceStatus.Write([]byte(servicemetric))
 
@@ -228,11 +238,6 @@ func main() {
 	// 	fmt.Println("UPLOAD logsmetrics SECCESS")
 	// }
 	// 循环conf/connfig.ini配置文件，跟nacos接口返回的数据做对比，并上报指标
-	serviceList := config.GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
-	for i := 0; i < len(serviceList); i++ {
-		methods.Contrast(config, serviceList[i], serviceStatus)
-	}
-	methods.UpdateMetrics(serviceStatus.Name(), config)
 
 	// onserviceproducerlist := config.GetString("cip.serviceList") // 读取配置
 	// onserviceproducerlist := config.GetStringMapString("jobserver.serviceList") //读取map[string]string

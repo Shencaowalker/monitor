@@ -57,7 +57,7 @@ func GetserviceproducerlistJson(config *viper.Viper, servicename string) Produce
 }
 
 //判断当前nacos中某一服务的生产者跟基线配置区别，写到Status.txt 指标文件中
-func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
+func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File)(err error) {
 	currentserviceproducer := GetserviceproducerlistJson(config, servicename)
 	serviceProducerList := config.GetStringMapString(servicename + ".serviceList")
 	var aironserviceproducertypesum string
@@ -67,10 +67,10 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 	} else {
 		aironserviceproducertypesum = config.GetString("global.projectname")+"producersum{name=\"" + servicename + "\",currentcount=\"" + strconv.Itoa(currentserviceproducer.Count) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + strconv.Itoa(currentcount) + "\"} " + "0" + "\n"
 	}
-	_, err := serviceStatus.Write([]byte(aironserviceproducertypesum))
+	_, err = serviceStatus.Write([]byte(aironserviceproducertypesum))
 	if err != nil {
 		fmt.Println("写入" + servicename + config.GetString("global.projectname") +"producercount失败 退出")
-		return
+		return err
 	}
 	for i, j := range serviceProducerList {
 		normalcount, _ := strconv.Atoi(j)
@@ -89,17 +89,19 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 		_, err = serviceStatus.Write([]byte(aironserviceproducerhealthycount))
 		if err != nil {
 			fmt.Println("写入" + servicename + config.GetString("global.projectname")+"producerhealthycount失败 退出")
-			return
+			return err
 		}
 	}
+	return nil
 }
 
 //更新pushgateway指标信息 改成根据指标来进行
-func UpdateMetrics(serviceStatusfile string,config *viper.Viper) {
+func UpdateMetrics(serviceStatusfile string,config *viper.Viper) (err error){
 	deletecmd := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/serviceproducer")
-	err := deletecmd.Run()
+	err = deletecmd.Run()
 	if err != nil {
 		fmt.Println("删除 serviceproducer 指标报错 err 继续执行")
+		return err
 	} else {
 		fmt.Println("DELETE serviceproducer SECCESS")
 	}
@@ -107,8 +109,10 @@ func UpdateMetrics(serviceStatusfile string,config *viper.Viper) {
 	err = pushcmd.Run()
 	if err != nil {
 		fmt.Println("上传指标报错 err 继续执行")
+		return err
 	} else {
 		fmt.Println("UPLOAD serviceproducer SECCESS")
+		return nil
 	}
 }
 
