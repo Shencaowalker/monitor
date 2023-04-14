@@ -63,9 +63,9 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) (
 	var aironserviceproducertypesum string
 	var aironserviceproducerhealthycount string
 	if currentcount := len(serviceProducerList); currentcount == currentserviceproducer.Count {
-		aironserviceproducertypesum = config.GetString("global.projectname") + "producersum{name=\"" + servicename + "\",currentcount=\"" + strconv.Itoa(currentserviceproducer.Count) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + strconv.Itoa(currentcount) + "\"} " + "1" + "\n"
+		aironserviceproducertypesum = config.GetString("global.projectname") + "producersum{name=\"" + servicename + "\",environmental=\"" + config.GetString("global.environmental") + "\",currentcount=\"" + strconv.Itoa(currentserviceproducer.Count) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + strconv.Itoa(currentcount) + "\"} " + "1" + "\n"
 	} else {
-		aironserviceproducertypesum = config.GetString("global.projectname") + "producersum{name=\"" + servicename + "\",currentcount=\"" + strconv.Itoa(currentserviceproducer.Count) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + strconv.Itoa(currentcount) + "\"} " + "0" + "\n"
+		aironserviceproducertypesum = config.GetString("global.projectname") + "producersum{name=\"" + servicename + "\",environmental=\"" + config.GetString("global.environmental") + "\",currentcount=\"" + strconv.Itoa(currentserviceproducer.Count) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + strconv.Itoa(currentcount) + "\"} " + "0" + "\n"
 	}
 	_, err = serviceStatus.Write([]byte(aironserviceproducertypesum))
 	if err != nil {
@@ -74,14 +74,14 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) (
 	}
 	for i, j := range serviceProducerList {
 		normalcount, _ := strconv.Atoi(j)
-		aironserviceproducerhealthycount = config.GetString("global.projectname") + "producerhealthycount{name=\"" + i + "\",healthytcount=\"0\",normalcount=\"" + j + "\"} " + "0" + "\n"
+		aironserviceproducerhealthycount = config.GetString("global.projectname") + "producerhealthycount{name=\"" + i + "\",environmental=\"" + config.GetString("global.environmental") + "\",healthytcount=\"0\",normalcount=\"" + j + "\"} " + "0" + "\n"
 		for _, k := range currentserviceproducer.ServiceList {
 			if i == k.Name {
 				if normalcount == k.HealthyInstanceCount {
-					aironserviceproducerhealthycount = config.GetString("global.projectname") + "producerhealthycount{name=\"" + i + "\",healthytcount=\"" + strconv.Itoa(k.HealthyInstanceCount) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "2" + "\n"
+					aironserviceproducerhealthycount = config.GetString("global.projectname") + "producerhealthycount{name=\"" + i + "\",environmental=\"" + config.GetString("global.environmental") + "\",healthytcount=\"" + strconv.Itoa(k.HealthyInstanceCount) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "2" + "\n"
 					break
 				} else if k.HealthyInstanceCount > 0 {
-					aironserviceproducerhealthycount = config.GetString("global.projectname") + "producerhealthycount{name=\"" + i + "\",healthytcount=\"" + strconv.Itoa(k.HealthyInstanceCount) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "1" + "\n"
+					aironserviceproducerhealthycount = config.GetString("global.projectname") + "producerhealthycount{name=\"" + i + "\",environmental=\"" + config.GetString("global.environmental") + "\",healthytcount=\"" + strconv.Itoa(k.HealthyInstanceCount) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "1" + "\n"
 					break
 				}
 			}
