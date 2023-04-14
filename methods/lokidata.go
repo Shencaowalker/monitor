@@ -176,7 +176,7 @@ func SplitoneLinetometrics(metricname string, collist []interface{}, value_col s
 	servicemetric = servicemetric[:len(servicemetric)-2] + "\"} " + arrs[drift] + "\n"
 	return servicemetric
 }
-
+//切割joinsight日志体，产生指标k v字符串按照6段式切割，第6段,最终返回所有
 func SplitoneJoinsightLinetometrics(metricname string, collist []interface{}, value_cols []interface{}, line string, re string) string {
 	arrs := strings.Split(line, re)
 	var servicemetrics string
@@ -187,7 +187,7 @@ func SplitoneJoinsightLinetometrics(metricname string, collist []interface{}, va
 			if err := json.Unmarshal([]byte(arrs[i]), &event); err != nil {
 				fmt.Println("json Unmarshal error!")
 			}
-			fmt.Println(event)
+			// fmt.Println(event)
 			for k, v := range event {
 				servicemetric = servicemetric + k + "=\"" + fmt.Sprintf("%v", v) + "\","
 			}
