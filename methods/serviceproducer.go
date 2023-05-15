@@ -97,7 +97,7 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) (
 
 //更新pushgateway指标信息 改成根据指标来进行
 func UpdateMetrics(serviceStatusfile string, config *viper.Viper) (err error) {
-	deletecmd := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/"+config.GetString("global.projectname")+config.GetString("global.environmental"))
+	deletecmd := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/"+config.GetString("global.projectname")+config.GetString("global.namespaceid")+config.GetString("global.environmental"))
 	err = deletecmd.Run()
 	if err != nil {
 		fmt.Println("删除 serviceproducer 指标报错 err 继续执行")
@@ -105,7 +105,7 @@ func UpdateMetrics(serviceStatusfile string, config *viper.Viper) (err error) {
 	} else {
 		fmt.Println("DELETE serviceproducer SECCESS")
 	}
-	pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@"+serviceStatusfile, "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/"+config.GetString("global.projectname")+config.GetString("global.environmental"))
+	pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@"+serviceStatusfile, "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/"+config.GetString("global.projectname")+config.GetString("global.namespaceid")+config.GetString("global.environmental"))
 	err = pushcmd.Run()
 	if err != nil {
 		fmt.Println("上传指标报错 err 继续执行")
