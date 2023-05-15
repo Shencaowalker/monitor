@@ -106,13 +106,15 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 	return producerjson
 }
 
-func Getlogfromloki(lokiipport string, label_list map[string]interface{}, latencycollectionseconds string, collectionscopeseconds string) (loglists []string) {
+func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timenow time.Time, latencycollectionseconds string, collectionscopeseconds string) (loglists []string) {
 	latencyseconds, _ := time.ParseDuration("-" + latencycollectionseconds + "s")
-	latencycollectiontime := time.Now().Add(1 * latencyseconds)
-	latencycollectiontimeformat := latencycollectiontime.UnixNano()
+	latencycollectiontime := timenow.Add(1 * latencyseconds)
+	latencycollectiontimeformat := ((latencycollectiontime.UnixNano()) / 1000000000) * 1000000000
 
 	scopeseconds, _ := time.ParseDuration(collectionscopeseconds + "s")
-	collectionscopetime := latencycollectiontime.Add(1 * scopeseconds).UnixNano()
+	collectionscopetime := ((latencycollectiontime.Add(1*scopeseconds).UnixNano())/1000000000)*1000000000 - 1
+
+	fmt.Println("开始时间：", latencycollectiontimeformat, "结束时间：", collectionscopetime)
 
 	// fmt.Println("latencycollectiontime:", latencycollectiontimeformat)
 	// fmt.Println("collectionscopetime:", collectionscopetime)
@@ -159,7 +161,6 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, latenc
 		}
 	}
 	fmt.Println(len(loglists))
-	fmt.Println(url)
 	return loglists
 }
 
@@ -176,6 +177,7 @@ func SplitoneLinetometrics(metricname string, collist []interface{}, value_col s
 	servicemetric = servicemetric[:len(servicemetric)-2] + "\"} " + arrs[drift] + "\n"
 	return servicemetric
 }
+
 //切割joinsight日志体，产生指标k v字符串按照6段式切割，第6段,最终返回所有
 func SplitoneJoinsightLinetometrics(metricname string, collist []interface{}, value_cols []interface{}, line string, re string) string {
 	arrs := strings.Split(line, re)

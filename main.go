@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log_as/methods"
-	"os"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -51,33 +51,32 @@ func main() {
 		fmt.Println("Config file changed:", e.Name)
 	})
 	//创建指标上传文件
-	serviceStatus, err := os.Create("Status.txt")
-	defer serviceStatus.Close()
-	if err != nil {
-		fmt.Println("文件创建失败", err)
-	}
+	// serviceStatus, err := os.Create("Status.txt")
+	// defer serviceStatus.Close()
+	// if err != nil {
+	// 	fmt.Println("文件创建失败", err)
+	// }
 
 	//入库跟指标上传使用一次loki请求
 	exp1 := config.GetStringMap("logprocessed.Listmetrics")
 	var values [][]interface{}
-	var metricsstring string
-	for ii, jj := range exp1 {
-		loglist := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (jj.(map[string]interface{})["label_list"]).(map[string]interface{}), jj.(map[string]interface{})["latencycollectionseconds"].(string), jj.(map[string]interface{})["collectionscopeseconds"].(string))
+	// var metricsstring string
+	timenow := time.Now()
+	for _, jj := range exp1 {
+		loglist := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (jj.(map[string]interface{})["label_list"]).(map[string]interface{}), timenow, jj.(map[string]interface{})["latencycollectionseconds"].(string), jj.(map[string]interface{})["collectionscopeseconds"].(string))
 		for _, j := range loglist {
 			raw := methods.SplitoneLinetopostgresql(j, "|")
 			values = append(values, raw)
-			onmetric := methods.SplitoneJoinsightLinetometrics(ii, (exp1[ii].(map[string]interface{})["label_name"]).([]interface{}), (exp1[ii].(map[string]interface{})["values"]).([]interface{}), j, "|")
-			metricsstring = metricsstring + onmetric
+			// onmetric := methods.SplitoneJoinsightLinetometrics(ii, (exp1[ii].(map[string]interface{})["label_name"]).([]interface{}), (exp1[ii].(map[string]interface{})["values"]).([]interface{}), j, "|")
+			// metricsstring = metricsstring + onmetric
 		}
-		_, err := serviceStatus.Write([]byte(metricsstring))
-		if err != nil {
-			fmt.Println("写入" + ii + "指标临时文件失败，退出")
-			continue
-		}
+		// _, err := serviceStatus.Write([]byte(metricsstring))
+		// if err != nil {
+		// 	fmt.Println("写入" + ii + "指标临时文件失败，退出")
+		// 	continue
 	}
 	db := methods.InitDB(config)
 	methods.InsertintoDB(db, config, values)
-	methods.UpdatePushgatewayMetrics(config, "chongyangjoinsighttest")
 }
 
 // func logtoDB(config *viper.Viper){
