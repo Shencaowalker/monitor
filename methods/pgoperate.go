@@ -24,8 +24,8 @@ import (
 // 	return db
 // }
 
-func InitDB(config *viper.Viper) *sqlx.DB {
-	dsn := "host=" + config.GetString("logtopostgresql.postgresqlip") + " port=" + config.GetString("logtopostgresql.postgresqlport") + " user=" + config.GetString("logtopostgresql.postgresqluser") + " password=" + config.GetString("logtopostgresql.postgresqlpass") + " dbname=" + config.GetString("logtopostgresql.postgresqldb") + " sslmode=disable"
+func InitDB(config *viper.Viper,project string) *sqlx.DB {
+	dsn := "host=" + config.GetString(project+".postgresqlip") + " port=" + config.GetString(project+".postgresqlport") + " user=" + config.GetString(project+".postgresqluser") + " password=" + config.GetString(project+".postgresqlpass") + " dbname=" + config.GetString(project+".postgresqldb") + " sslmode=disable"
 	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		fmt.Printf("connect DB failed, err:%v\n", err)
@@ -35,14 +35,14 @@ func InitDB(config *viper.Viper) *sqlx.DB {
 	db.SetMaxIdleConns(5)
 	return db
 }
-func InsertintoDB(db *sqlx.DB, config *viper.Viper, values [][]interface{}) {
+func InsertintoDB(db *sqlx.DB, config *viper.Viper, project string,values [][]interface{}) {
 	defer db.Close()
 	tx, err := db.Beginx()
 	if err != nil {
 		fmt.Println("Beginx error:", err)
 		panic(err)
 	}
-	stmt, err := tx.Preparex(db.Rebind(config.GetString("logtopostgresql.sqlmod")))
+	stmt, err := tx.Preparex(db.Rebind(config.GetString(project+".sqlmod")))
 	if err != nil {
 		fmt.Println("Prepare error:", err)
 		panic(err)

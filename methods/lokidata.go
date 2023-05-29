@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -130,6 +131,7 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timeno
 		a = a + i + "=\"" + j.(string) + "\","
 	}
 	url := "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit=8000"
+	fmt.Println("this is getlog url ")
 	fmt.Println(url)
 	// url := "http://" + lokiipport + "/loki/api/v1/query_range?query={job=\"" + "chaos" + "\"}&start=1672816117813000000&end=1672902517813000000&limit=8000"
 	client := &http.Client{}
@@ -207,6 +209,16 @@ func SplitoneLinetopostgresql(line string, re string) []interface{} {
 	var a []interface{}
 	arrs := strings.Split(line, re)
 	for _, j := range arrs {
+		a = append(a, j)
+	}
+	return a
+}
+
+func SplitoneLineforreFiltertopostgresql(line string, re string) []interface{} {
+	var a []interface{}
+	rereal := regexp.MustCompile(re)
+	matchs := rereal.FindStringSubmatch(line)
+	for _, j := range matchs {
 		a = append(a, j)
 	}
 	return a

@@ -58,25 +58,46 @@ func main() {
 	// }
 
 	//入库跟指标上传使用一次loki请求
-	exp1 := config.GetStringMap("logprocessed.Listmetrics")
-	var values [][]interface{}
+	// exp1 := config.GetStringMap("logprocessed.Listmetrics")
+	// var values [][]interface{}
 	// var metricsstring string
+	// timenow := time.Now()
+	// for _, jj := range exp1 {
+	// 	loglist := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (jj.(map[string]interface{})["label_list"]).(map[string]interface{}), timenow, jj.(map[string]interface{})["latencycollectionseconds"].(string), jj.(map[string]interface{})["collectionscopeseconds"].(string))
+	// 	for _, j := range loglist {
+	// 		raw := methods.SplitoneLinetopostgresql(j, "|")
+	// 		values = append(values, raw)
+	// 		// onmetric := methods.SplitoneJoinsightLinetometrics(ii, (exp1[ii].(map[string]interface{})["label_name"]).([]interface{}), (exp1[ii].(map[string]interface{})["values"]).([]interface{}), j, "|")
+	// 		// metricsstring = metricsstring + onmetric
+	// 	}
+	// 	// _, err := serviceStatus.Write([]byte(metricsstring))
+	// 	// if err != nil {
+	// 	// 	fmt.Println("写入" + ii + "指标临时文件失败，退出")
+	// 	// 	continue
+	// }
+
+	// re := regexp.MustCompile(`(\d+-\d+-\d+\s\S+)\s\[\S+]\s(\w+)\s+(\S+)\s-\s(.*)`)
+
+	exp2 := config.GetStringMap("logprocessed.listmetrics")
+	fmt.Println("exp2 is:", exp2)
+	var values [][]interface{}
 	timenow := time.Now()
-	for _, jj := range exp1 {
-		loglist := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (jj.(map[string]interface{})["label_list"]).(map[string]interface{}), timenow, jj.(map[string]interface{})["latencycollectionseconds"].(string), jj.(map[string]interface{})["collectionscopeseconds"].(string))
-		for _, j := range loglist {
-			raw := methods.SplitoneLinetopostgresql(j, "|")
-			values = append(values, raw)
-			// onmetric := methods.SplitoneJoinsightLinetometrics(ii, (exp1[ii].(map[string]interface{})["label_name"]).([]interface{}), (exp1[ii].(map[string]interface{})["values"]).([]interface{}), j, "|")
-			// metricsstring = metricsstring + onmetric
+	for ii, jj := range exp2 {
+		loglists := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (jj.(map[string]interface{})["label_list"]).(map[string]interface{}), timenow, jj.(map[string]interface{})["latencycollectionseconds"].(string), jj.(map[string]interface{})["collectionscopeseconds"].(string))
+		for _, j := range loglists {
+			fmt.Println(j)
+			raw := methods.SplitoneLineforreFiltertopostgresql(j, jj.(map[string]interface{})["restring"].(string))
+			if len(raw) == 0 {
+				fmt.Println("匹配失败")
+			} else {
+				raw = append(raw, ii)
+				values = append(values, raw)
+			}
 		}
-		// _, err := serviceStatus.Write([]byte(metricsstring))
-		// if err != nil {
-		// 	fmt.Println("写入" + ii + "指标临时文件失败，退出")
-		// 	continue
 	}
-	db := methods.InitDB(config)
-	methods.InsertintoDB(db, config, values)
+	fmt.Println(values)
+	// db := methods.InitDB(config,"airlogtopostgresql")
+	// methods.InsertintoDB(db, config, "airlogtopostgresql",values)
 }
 
 // func logtoDB(config *viper.Viper){
