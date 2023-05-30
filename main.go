@@ -79,25 +79,29 @@ func main() {
 	// re := regexp.MustCompile(`(\d+-\d+-\d+\s\S+)\s\[\S+]\s(\w+)\s+(\S+)\s-\s(.*)`)
 
 	exp2 := config.GetStringMap("logprocessed.listmetrics")
-	fmt.Println("exp2 is:", exp2)
+	// fmt.Println("exp2 is:", exp2)
 	var values [][]interface{}
 	timenow := time.Now()
 	for ii, jj := range exp2 {
 		loglists := methods.Getlogfromloki(config.GetString("logprocessed.lokiipport"), (jj.(map[string]interface{})["label_list"]).(map[string]interface{}), timenow, jj.(map[string]interface{})["latencycollectionseconds"].(string), jj.(map[string]interface{})["collectionscopeseconds"].(string))
 		for _, j := range loglists {
-			fmt.Println(j)
+			// fmt.Println(j)
 			raw := methods.SplitoneLineforreFiltertopostgresql(j, jj.(map[string]interface{})["restring"].(string))
 			if len(raw) == 0 {
 				fmt.Println("匹配失败")
 			} else {
-				raw = append(raw, ii)
+				for i, j := range raw {
+					fmt.Println(i, " = ", j.(string))
+				}
+				fmt.Println(raw)
+				raw = append(raw[1:], ii)
 				values = append(values, raw)
 			}
 		}
 	}
-	fmt.Println(values)
-	// db := methods.InitDB(config,"airlogtopostgresql")
-	// methods.InsertintoDB(db, config, "airlogtopostgresql",values)
+	// fmt.Println(values)
+	db := methods.InitDB(config, "airlogtopostgresql")
+	methods.InsertintoDB(db, config, "airlogtopostgresql", values)
 }
 
 // func logtoDB(config *viper.Viper){
