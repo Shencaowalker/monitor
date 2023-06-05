@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log_as/apis"
 	"log_as/timecmd"
+	"net/http"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
-<<<<<<< HEAD
 var (
 	// mysqlIp     string
 	// mysqlPort   string
@@ -67,14 +68,14 @@ func main() {
 		default:
 			fmt.Println("Please run main.go -c XXXX; XXXX scope please refer `main.go -h` ")
 		}
-	}else if istask == "false"{
+	} else if istask == "false" {
 		http.HandleFunc("/registereditem", apis.RegisteredItem(config))
-	http.HandleFunc("/registeredalarm", apis.RegisteredAlarm(config))
-	http.HandleFunc("/downlineitem", apis.DownlineItems(config))
-	http.HandleFunc("/downlinealarm", apis.DownlineAlarm(config))
-	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
-	http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
-	}else{
+		http.HandleFunc("/registeredalarm", apis.RegisteredAlarm(config))
+		http.HandleFunc("/downlineitem", apis.DownlineItems(config))
+		http.HandleFunc("/downlinealarm", apis.DownlineAlarm(config))
+		http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
+		http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
+	} else {
 		fmt.Println("Please run main.go -c XXXX; XXXX scope please refer `main.go -h` ")
 	}
-
+}
