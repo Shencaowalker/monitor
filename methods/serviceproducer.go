@@ -34,13 +34,13 @@ func GetserviceproducerlistJson(config *viper.Viper, servicename string) Produce
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("wraps ", servicename, "nacos producers url err.\n")
+		fmt.Println("wraps ", servicename, "nacos producers url err.")
 		return producerjson
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Get", servicename, "producers err.\n")
+		fmt.Println("Get", servicename, "producers err.")
 		return producerjson
 	}
 	defer resp.Body.Close()
@@ -48,7 +48,7 @@ func GetserviceproducerlistJson(config *viper.Viper, servicename string) Produce
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("read resp error,", servicename, "producers read err.\n")
+		fmt.Println("read resp error,", servicename, "producers read err.")
 		return producerjson
 	}
 
@@ -177,16 +177,16 @@ func AsyncBUpdateNacosStandardConf(configaddr *(*viper.Viper)) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", (*configaddr).GetString("global.cmbalarminterface")+result, nil)
 	if err != nil {
-		log.Println("配组告警连接失败。无法得到nacos配置更新状态,请检查。\n")
+		log.Println("配组告警连接失败。无法得到nacos配置更新状态,请检查。")
 		return
 	}
 	log.Println("开始发送更新消息到群组")
 	_, err = client.Do(req)
 	if err != nil {
-		log.Println("调用告警连接失败。无法得到nacos配置更新状态,请检查。\n")
+		log.Println("调用告警连接失败。无法得到nacos配置更新状态,请检查。")
 		return
 	} else {
-		log.Println("发送成功。\n")
+		log.Println("发送成功。")
 		return
 	}
 }
