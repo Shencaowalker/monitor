@@ -107,7 +107,7 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 	return producerjson
 }
 
-func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timenow time.Time, latencycollectionseconds string, collectionscopeseconds string) (loglists []string) {
+func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timenow time.Time, latencycollectionseconds string, collectionscopeseconds string,recordslimit string,lokire string) (loglists []string) {
 	latencyseconds, _ := time.ParseDuration("-" + latencycollectionseconds + "s")
 	latencycollectiontime := timenow.Add(1 * latencyseconds)
 	latencycollectiontimeformat := ((latencycollectiontime.UnixNano()) / 1000000000) * 1000000000
@@ -130,7 +130,12 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timeno
 	for i, j := range label_list {
 		a = a + i + "=\"" + j.(string) + "\","
 	}
-	url := "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit=8000"
+	var url string
+	if lokire != ""{
+		url = "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}|~`"+ lokire +"`&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit="+recordslimit
+	}else{
+		url = "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit="+recordslimit
+	}
 	fmt.Println("this is getlog url ")
 	fmt.Println(url)
 	// url := "http://" + lokiipport + "/loki/api/v1/query_range?query={job=\"" + "chaos" + "\"}&start=1672816117813000000&end=1672902517813000000&limit=8000"
@@ -205,7 +210,7 @@ func SplitoneJoinsightLinetometrics(metricname string, collist []interface{}, va
 	return servicemetrics
 }
 
-func SplitoneLinetopostgresql(line string, re string) []interface{} {
+func SplitoneLineforSplit(line string, re string) []interface{} {
 	var a []interface{}
 	arrs := strings.Split(line, re)
 	for _, j := range arrs {
@@ -214,7 +219,7 @@ func SplitoneLinetopostgresql(line string, re string) []interface{} {
 	return a
 }
 
-func SplitoneLineforreFiltertopostgresql(line string, re string) []interface{} {
+func SplitoneLineforreFilter(line string, re string) []interface{} {
 	var a []interface{}
 	rereal := regexp.MustCompile(re)
 	matchs := rereal.FindStringSubmatch(line)

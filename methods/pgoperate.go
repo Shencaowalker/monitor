@@ -2,6 +2,7 @@ package methods
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -24,8 +25,8 @@ import (
 // 	return db
 // }
 
-func InitDB(config *viper.Viper,project string) *sqlx.DB {
-	dsn := "host=" + config.GetString(project+".postgresqlip") + " port=" + config.GetString(project+".postgresqlport") + " user=" + config.GetString(project+".postgresqluser") + " password=" + config.GetString(project+".postgresqlpass") + " dbname=" + config.GetString(project+".postgresqldb") + " sslmode=disable"
+func InitDB(config *viper.Viper, project string) *sqlx.DB {
+	dsn := "host=" + config.GetString(project+".postgresqlip") + " port=" + config.GetString(project+".postgresqlport") + " user=" + config.GetString(project+".postgresqluser") + " password=" + config.GetString(project+".postgresqlpass") + " dbname=" + config.GetString(project+".postgresqldb") + " sslmode=disable" + " options=--client_encoding=utf8"
 	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		fmt.Printf("connect DB failed, err:%v\n", err)
@@ -35,14 +36,19 @@ func InitDB(config *viper.Viper,project string) *sqlx.DB {
 	db.SetMaxIdleConns(5)
 	return db
 }
-func InsertintoDB(db *sqlx.DB, config *viper.Viper, project string,values [][]interface{}) {
+func InsertintoDB(db *sqlx.DB, config *viper.Viper, project string, values [][]interface{}) {
 	defer db.Close()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		log.Println("Recovered from panic:", r)
+	// 	}
+	// }()
 	tx, err := db.Beginx()
 	if err != nil {
 		fmt.Println("Beginx error:", err)
 		panic(err)
 	}
-	stmt, err := tx.Preparex(db.Rebind(config.GetString(project+".sqlmod")))
+	stmt, err := tx.Preparex(db.Rebind(config.GetString(project + ".sqlmod")))
 	if err != nil {
 		fmt.Println("Prepare error:", err)
 		panic(err)
@@ -50,8 +56,9 @@ func InsertintoDB(db *sqlx.DB, config *viper.Viper, project string,values [][]in
 	for _, value := range values {
 		_, err = stmt.Exec(value...)
 		if err != nil {
-			fmt.Println("Exec error:", err)
-			panic(err)
+			log.Println("Exec error:", err)
+			log.Println(value)
+			continue
 		}
 	}
 	err = stmt.Close()
