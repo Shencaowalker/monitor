@@ -4,13 +4,42 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/spf13/viper"
 )
+
+type Stream struct {
+	Project  string `json:"project"`
+	Hostname string `json:"hostname"`
+	Filename string `json:"filename"`
+	Host     string `json:"host"`
+}
+
+type Streams struct {
+	Stream Stream     `json:"stream"`
+	Values [][]string `json:"values"`
+}
+
+type LokiPushData struct {
+	Streams []Streams `json:"streams"`
+}
+
+type ReceiveDataUploadedToLoki struct {
+	Type    string `json:"type"`
+	Content string `json:"content"`
+	Labels  struct {
+		Project  string `json:"project"`
+		Hostname string `json:"hostname"`
+		Filename string `json:"filename"`
+		Host     string `json:"host"`
+	}
+}
 
 type LokiQuery_range struct {
 	Status string `json:"status"`
@@ -84,13 +113,13 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("wraps ", servicename, "nacos producers url err.")
+		log.Println("wraps ", servicename, "nacos producers url err.")
 		return producerjson
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Get", servicename, "producers err.")
+		log.Println("Get", servicename, "producers err.")
 		return producerjson
 	}
 	defer resp.Body.Close()
@@ -98,7 +127,7 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("read resp error,", servicename, "producers read err.")
+		log.Println("read resp error,", servicename, "producers read err.")
 		return producerjson
 	}
 
@@ -106,13 +135,15 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 	return producerjson
 }
 
-func Getlogfromloki(lokiipport string, label_list map[string]interface{}, latencycollectionseconds string, collectionscopeseconds string) (loglists []string) {
+func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timenow time.Time, latencycollectionseconds string, collectionscopeseconds string, recordslimit string, lokire string) (loglists []string) {
 	latencyseconds, _ := time.ParseDuration("-" + latencycollectionseconds + "s")
-	latencycollectiontime := time.Now().Add(1 * latencyseconds)
-	latencycollectiontimeformat := latencycollectiontime.UnixNano()
+	latencycollectiontime := timenow.Add(1 * latencyseconds)
+	latencycollectiontimeformat := ((latencycollectiontime.UnixNano()) / 1000000000) * 1000000000
 
 	scopeseconds, _ := time.ParseDuration(collectionscopeseconds + "s")
-	collectionscopetime := latencycollectiontime.Add(1 * scopeseconds).UnixNano()
+	collectionscopetime := ((latencycollectiontime.Add(1*scopeseconds).UnixNano())/1000000000)*1000000000 - 1
+
+	log.Println("开始时间：", latencycollectiontimeformat, "结束时间：", collectionscopetime)
 
 	// fmt.Println("latencycollectiontime:", latencycollectiontimeformat)
 	// fmt.Println("collectionscopetime:", collectionscopetime)
@@ -127,19 +158,24 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, latenc
 	for i, j := range label_list {
 		a = a + i + "=\"" + j.(string) + "\","
 	}
-	url := "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit=8000"
+	var url string
+	if lokire != "" {
+		url = "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}|~`" + lokire + "`&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit=" + recordslimit
+	} else {
+		url = "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit=" + recordslimit
+	}
 	// url := "http://" + lokiipport + "/loki/api/v1/query_range?query={job=\"" + "chaos" + "\"}&start=1672816117813000000&end=1672902517813000000&limit=8000"
 	client := &http.Client{}
 	var lokiquery_range LokiQuery_range
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("wraps: create ", url, "request  error.")
+		log.Println("wraps: create ", url, "request  error.")
 		return loglists
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Get", url, " err.")
+		log.Println("Get", url, " err.")
 		return loglists
 	}
 	defer resp.Body.Close()
@@ -147,7 +183,7 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, latenc
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("read resp error log read err.")
+		log.Println("read resp error log read err.")
 		return loglists
 	}
 
@@ -158,7 +194,6 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, latenc
 		}
 	}
 	fmt.Println(len(loglists))
-	fmt.Println(url)
 	return loglists
 }
 
@@ -174,4 +209,48 @@ func SplitoneLinetometrics(metricname string, collist []interface{}, value_col s
 	}
 	servicemetric = servicemetric[:len(servicemetric)-2] + "\"} " + arrs[drift] + "\n"
 	return servicemetric
+}
+
+//切割joinsight日志体，产生指标k v字符串按照6段式切割，第6段,最终返回所有
+func SplitoneJoinsightLinetometrics(metricname string, collist []interface{}, value_cols []interface{}, line string, re string) string {
+	arrs := strings.Split(line, re)
+	var servicemetrics string
+	var event map[string]interface{}
+	servicemetric := metricname + "{"
+	for i, j := range collist {
+		if j.(string) == "jsoncontent" {
+			if err := json.Unmarshal([]byte(arrs[i]), &event); err != nil {
+				log.Println("json Unmarshal error!")
+			}
+			// fmt.Println(event)
+			for k, v := range event {
+				servicemetric = servicemetric + k + "=\"" + fmt.Sprintf("%v", v) + "\","
+			}
+			continue
+		}
+		servicemetric = servicemetric + j.(string) + "=\"" + arrs[i] + "\","
+	}
+	for _, jj := range value_cols {
+		servicemetrics += servicemetric[:len(servicemetric)-2] + "\"} " + fmt.Sprintf("%v", event[jj.(string)]) + "\n"
+	}
+	return servicemetrics
+}
+
+func SplitoneLineforSplit(line string, re string) []interface{} {
+	var a []interface{}
+	arrs := strings.Split(line, re)
+	for _, j := range arrs {
+		a = append(a, j)
+	}
+	return a
+}
+
+func SplitoneLineforreFilter(line string, re string) []interface{} {
+	var a []interface{}
+	rereal := regexp.MustCompile(re)
+	matchs := rereal.FindStringSubmatch(line)
+	for _, j := range matchs {
+		a = append(a, j)
+	}
+	return a
 }

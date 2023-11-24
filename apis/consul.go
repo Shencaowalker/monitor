@@ -3,23 +3,34 @@ package apis
 import (
 	"encoding/json"
 	"log"
-	"log_as/methods"
+	"monitor/methods"
 	"net/http"
 
 	"github.com/spf13/viper"
 )
 
-//post接口接收json数据 item
+// swagger:route POST /registereditem RegisteredItem RegisteredItem
+//
+// post接口接收json数据 item.
+//
+// This will show all available pets by default.
+//
+//     Schemes: http, https
+//
+//     Responses:
+//       200: petsResponse
+//       401: genericError
+//       500: genericError
 func RegisteredItem(config *viper.Viper) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		var information methods.Registration_nformation
 		if err := json.NewDecoder(request.Body).Decode(&information); err != nil {
 			request.Body.Close()
-			log.Fatal(err)
+			log.Println(err)
 		}
 		result := methods.ConsulregisterItem(config, information)
 		if err := json.NewEncoder(writer).Encode(result); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}
 }
@@ -31,7 +42,7 @@ func DownlineItems(config *viper.Viper) func(writer http.ResponseWriter, request
 		id, _ := request.Form["itemid"]
 		result := methods.ConsuldownlineItems(config, id[0])
 		if err := json.NewEncoder(writer).Encode(result); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}
 }
@@ -52,12 +63,12 @@ func RegisteredAlarm(config *viper.Viper) func(writer http.ResponseWriter, reque
 		// bodystr := mahonia.NewDecoder("gbk").NewReader(request.Body)
 		if err := json.NewDecoder(request.Body).Decode(&information); err != nil {
 			request.Body.Close()
-			log.Fatal(err)
+			log.Println(err)
 		}
 
 		result := methods.ConsulregisterAlarm(config, information)
 		if err := json.NewEncoder(writer).Encode(result); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}
 }
@@ -68,7 +79,7 @@ func DownlineAlarm(config *viper.Viper) func(writer http.ResponseWriter, request
 		id, _ := request.Form["alarmid"]
 		result := methods.ConsuldownlineAlarm(config, id[0])
 		if err := json.NewEncoder(writer).Encode(result); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}
 }
