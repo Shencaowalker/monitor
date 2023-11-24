@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -12,6 +13,33 @@ import (
 
 	"github.com/spf13/viper"
 )
+
+type Stream struct {
+	Project  string `json:"project"`
+	Hostname string `json:"hostname"`
+	Filename string `json:"filename"`
+	Host     string `json:"host"`
+}
+
+type Streams struct {
+	Stream Stream     `json:"stream"`
+	Values [][]string `json:"values"`
+}
+
+type LokiPushData struct {
+	Streams []Streams `json:"streams"`
+}
+
+type ReceiveDataUploadedToLoki struct {
+	Type    string `json:"type"`
+	Content string `json:"content"`
+	Labels  struct {
+		Project  string `json:"project"`
+		Hostname string `json:"hostname"`
+		Filename string `json:"filename"`
+		Host     string `json:"host"`
+	}
+}
 
 type LokiQuery_range struct {
 	Status string `json:"status"`
@@ -85,13 +113,13 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("wraps ", servicename, "nacos producers url err.")
+		log.Println("wraps ", servicename, "nacos producers url err.")
 		return producerjson
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Get", servicename, "producers err.")
+		log.Println("Get", servicename, "producers err.")
 		return producerjson
 	}
 	defer resp.Body.Close()
@@ -99,7 +127,7 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("read resp error,", servicename, "producers read err.")
+		log.Println("read resp error,", servicename, "producers read err.")
 		return producerjson
 	}
 
@@ -107,7 +135,7 @@ func Getlogfromloki2(config *viper.Viper, servicename string) ProducerJson {
 	return producerjson
 }
 
-func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timenow time.Time, latencycollectionseconds string, collectionscopeseconds string,recordslimit string,lokire string) (loglists []string) {
+func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timenow time.Time, latencycollectionseconds string, collectionscopeseconds string, recordslimit string, lokire string) (loglists []string) {
 	latencyseconds, _ := time.ParseDuration("-" + latencycollectionseconds + "s")
 	latencycollectiontime := timenow.Add(1 * latencyseconds)
 	latencycollectiontimeformat := ((latencycollectiontime.UnixNano()) / 1000000000) * 1000000000
@@ -115,7 +143,7 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timeno
 	scopeseconds, _ := time.ParseDuration(collectionscopeseconds + "s")
 	collectionscopetime := ((latencycollectiontime.Add(1*scopeseconds).UnixNano())/1000000000)*1000000000 - 1
 
-	fmt.Println("开始时间：", latencycollectiontimeformat, "结束时间：", collectionscopetime)
+	log.Println("开始时间：", latencycollectiontimeformat, "结束时间：", collectionscopetime)
 
 	// fmt.Println("latencycollectiontime:", latencycollectiontimeformat)
 	// fmt.Println("collectionscopetime:", collectionscopetime)
@@ -131,25 +159,23 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timeno
 		a = a + i + "=\"" + j.(string) + "\","
 	}
 	var url string
-	if lokire != ""{
-		url = "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}|~`"+ lokire +"`&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit="+recordslimit
-	}else{
-		url = "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit="+recordslimit
+	if lokire != "" {
+		url = "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}|~`" + lokire + "`&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit=" + recordslimit
+	} else {
+		url = "http://" + lokiipport + "/loki/api/v1/query_range?query={" + a[:len(a)-1] + "}&start=" + strconv.Itoa(int(latencycollectiontimeformat)) + "&end=" + strconv.Itoa(int(collectionscopetime)) + "&limit=" + recordslimit
 	}
-	fmt.Println("this is getlog url ")
-	fmt.Println(url)
 	// url := "http://" + lokiipport + "/loki/api/v1/query_range?query={job=\"" + "chaos" + "\"}&start=1672816117813000000&end=1672902517813000000&limit=8000"
 	client := &http.Client{}
 	var lokiquery_range LokiQuery_range
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("wraps: create ", url, "request  error.")
+		log.Println("wraps: create ", url, "request  error.")
 		return loglists
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Get", url, " err.")
+		log.Println("Get", url, " err.")
 		return loglists
 	}
 	defer resp.Body.Close()
@@ -157,7 +183,7 @@ func Getlogfromloki(lokiipport string, label_list map[string]interface{}, timeno
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("read resp error log read err.")
+		log.Println("read resp error log read err.")
 		return loglists
 	}
 
@@ -194,7 +220,7 @@ func SplitoneJoinsightLinetometrics(metricname string, collist []interface{}, va
 	for i, j := range collist {
 		if j.(string) == "jsoncontent" {
 			if err := json.Unmarshal([]byte(arrs[i]), &event); err != nil {
-				fmt.Println("json Unmarshal error!")
+				log.Println("json Unmarshal error!")
 			}
 			// fmt.Println(event)
 			for k, v := range event {

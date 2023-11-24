@@ -2,7 +2,6 @@ package methods
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -34,13 +33,13 @@ func GetserviceproducerlistJson(config *viper.Viper, servicename string) Produce
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("wraps ", servicename, "nacos producers url err.")
+		log.Println("wraps ", servicename, "nacos producers url err.")
 		return producerjson
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Get", servicename, "producers err.")
+		log.Println("Get", servicename, "producers err.")
 		return producerjson
 	}
 	defer resp.Body.Close()
@@ -48,7 +47,7 @@ func GetserviceproducerlistJson(config *viper.Viper, servicename string) Produce
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("read resp error,", servicename, "producers read err.")
+		log.Println("read resp error,", servicename, "producers read err.")
 		return producerjson
 	}
 
@@ -69,7 +68,7 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 	}
 	_, err := serviceStatus.Write([]byte(aironserviceproducertypesum))
 	if err != nil {
-		fmt.Println("写入" + servicename + "airserviceproducercount失败 退出")
+		log.Println("写入" + servicename + "airserviceproducercount失败 退出")
 		return
 	}
 	for i, j := range serviceProducerList {
@@ -88,7 +87,7 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 		}
 		_, err = serviceStatus.Write([]byte(aironserviceproducerhealthycount))
 		if err != nil {
-			fmt.Println("写入" + servicename + "aironserviceproducerhealthycount失败 退出")
+			log.Println("写入" + servicename + "aironserviceproducerhealthycount失败 退出")
 			return
 		}
 	}
@@ -99,16 +98,16 @@ func UpdateMetrics(config *viper.Viper) {
 	deletecmd := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/serviceproducer")
 	err := deletecmd.Run()
 	if err != nil {
-		fmt.Println("删除 serviceproducer 指标报错 err 继续执行")
+		log.Println("删除 serviceproducer 指标报错 err 继续执行")
 	} else {
-		fmt.Println("DELETE serviceproducer SECCESS")
+		log.Println("DELETE serviceproducer SECCESS")
 	}
 	pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@Status.txt", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/serviceproducer")
 	err = pushcmd.Run()
 	if err != nil {
-		fmt.Println("上传指标报错 err 继续执行")
+		log.Println("上传指标报错 err 继续执行")
 	} else {
-		fmt.Println("UPLOAD serviceproducer SECCESS")
+		log.Println("UPLOAD serviceproducer SECCESS")
 	}
 }
 
@@ -159,7 +158,7 @@ func AsyncBUpdateNacosStandardConf(configaddr *(*viper.Viper)) {
 	} else {
 		//重新读取配置文件中读取服务列表
 		log.Println("Reread the configuration file")
-		(*configaddr) = CreateNewconfiger("./conf/","config", "ini")
+		(*configaddr) = CreateNewconfiger("./conf/", "config", "ini")
 		serviceList := (*configaddr).GetStringSlice("global.servicelist") //["dws","cip","das","afp","asp","bde","tse","arctic","jobserver"]
 		//循环调用接口更新内存中的配置为当先nacos中的生产者信息
 		for i := 0; i < len(serviceList); i++ {
@@ -198,12 +197,10 @@ func CreateNewconfiger(relativedir string, filename string, file_suffix string) 
 	config.SetConfigType(file_suffix) // 文件类型
 	if err := config.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			fmt.Println("找不到配置文件..")
+			log.Println("找不到配置文件..")
 		} else {
-			fmt.Println("配置文件出错..")
+			log.Println("配置文件出错..")
 		}
 	}
 	return config
 }
-
-

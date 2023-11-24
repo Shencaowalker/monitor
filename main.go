@@ -3,8 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log_as/apis"
-	"log_as/timecmd"
+	"monitor/apis"
 	"net/http"
 
 	"github.com/fsnotify/fsnotify"
@@ -59,23 +58,27 @@ func main() {
 		// 配置文件发生变更之后会调用的回调函数
 		fmt.Println("Config file changed:", e.Name)
 	})
-	if istask == "true" {
-		switch operate {
-		case "airserverlogtopg":
-			timecmd.Serverlogtopg(config, project)
-		case "airservertypelogtopg":
-			timecmd.Servertypelogetopg(config, logtype, project)
-		default:
-			fmt.Println("Please run main.go -c XXXX; XXXX scope please refer `main.go -h` ")
-		}
-	} else if istask == "false" {
-		http.HandleFunc("/registereditem", apis.RegisteredItem(config))
-		http.HandleFunc("/registeredalarm", apis.RegisteredAlarm(config))
-		http.HandleFunc("/downlineitem", apis.DownlineItems(config))
-		http.HandleFunc("/downlinealarm", apis.DownlineAlarm(config))
-		http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
-		http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
-	} else {
-		fmt.Println("Please run main.go -c XXXX; XXXX scope please refer `main.go -h` ")
-	}
+	// if istask == "true" {
+	// 	switch operate {
+	// 	case "airserverlogtopg":
+	// 		timecmd.Serverlogtopg(config, project)
+	// 	case "airservertypelogtopg":
+	// 		timecmd.Servertypelogetopg(config, logtype, project)
+	// 	default:
+	// 		fmt.Println("Please run main.go -c XXXX; XXXX scope please refer `main.go -h` ")
+	// 	}
+	// } else if istask == "false" {
+	http.HandleFunc("/registereditem", apis.RegisteredItem(config))
+	http.HandleFunc("/registeredalarm", apis.RegisteredAlarm(config))
+	http.HandleFunc("/downlineitem", apis.DownlineItems(config))
+	http.HandleFunc("/downlinealarm", apis.DownlineAlarm(config))
+	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
+	http.HandleFunc("/dingdingrobotSend", apis.DingdingrobotSend(config))
+	http.HandleFunc("/transfertoloki", apis.TransferToLoki(config))
+
+	http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
+	// } else {
+	// 	fmt.Println("Please run main.go -c XXXX; XXXX scope please refer `main.go -h` ")
+	// }
+	// fmt.Println(config.GetStringMap("dingdingwebhook.listrebots")["default"].(map[string]interface{})["default"].(map[string]interface{})["accessToken"].(string))
 }

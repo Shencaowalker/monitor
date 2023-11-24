@@ -1,0 +1,19 @@
+paths:
+    /registereditem:
+        post:
+            description: This will show all available pets by default.
+            operationId: RegisteredItem
+            responses:
+                "200":
+                    $ref: '#/responses/petsResponse'
+                "401":
+                    $ref: '#/responses/genericError'
+                "500":
+                    $ref: '#/responses/genericError'
+            schemes:
+                - http
+                - https
+            summary: post接口接收json数据 item.
+            tags:
+                - RegisteredItem
+swagger: "2.0"

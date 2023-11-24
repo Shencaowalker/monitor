@@ -2,7 +2,7 @@ package timecmd
 
 import (
 	"fmt"
-	"log_as/methods"
+	"monitor/methods"
 	"strings"
 	"time"
 	"unicode/utf8"

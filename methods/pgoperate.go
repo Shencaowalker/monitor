@@ -54,7 +54,8 @@ func InsertintoDB(db *sqlx.DB, config *viper.Viper, project string, values [][]i
 		panic(err)
 	}
 	for _, value := range values {
-		_, err = stmt.Exec(value...)
+		// _, err = stmt.Exec(value...)
+		_, err = stmt.Exec(value)
 		if err != nil {
 			log.Println("Exec error:", err)
 			log.Println(value)
