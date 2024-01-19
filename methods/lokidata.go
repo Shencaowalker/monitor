@@ -15,10 +15,13 @@ import (
 )
 
 type Stream struct {
-	Project  string `json:"project"`
-	Hostname string `json:"hostname"`
-	Filename string `json:"filename"`
-	Host     string `json:"host"`
+	Project     string `json:"project"`
+	Hostname    string `json:"hostname"`
+	Filename    string `json:"filename"`
+	Host        string `json:"host"`
+	Elasticenv  string `json:"elasticEnv"`
+	Environment string `json:"environment"`
+	Job         string `json:"job"`
 }
 
 type Streams struct {
@@ -34,10 +37,13 @@ type ReceiveDataUploadedToLoki struct {
 	Type    string `json:"type"`
 	Content string `json:"content"`
 	Labels  struct {
-		Project  string `json:"project"`
-		Hostname string `json:"hostname"`
-		Filename string `json:"filename"`
-		Host     string `json:"host"`
+		Project     string `json:"project"`
+		Hostname    string `json:"hostname"`
+		Filename    string `json:"filename"`
+		Host        string `json:"host"`
+		Elasticenv  string `json:"elasticEnv"`
+		Environment string `json:"environment"`
+		Job         string `json:"job"`
 	}
 }
 

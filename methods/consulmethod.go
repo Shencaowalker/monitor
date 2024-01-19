@@ -27,6 +27,14 @@ type Registration_nformation struct {
 	App_type string `json:"App_type"`
 }
 
+type Registration_nformations struct {
+	Values []Registration_nformation `json:"values"`
+}
+
+type Ddownline_nformations struct {
+	Itemids []string `"itemids"`
+}
+
 type Registration_Alarm struct {
 	Alert  string `json:"alert"`
 	Expr   string `json:"expr"`
@@ -80,6 +88,30 @@ func ConsulregisterItem(config *viper.Viper, information Registration_nformation
 	return
 }
 
+func ConsuldownlineItem(config *viper.Viper, id string) (result Resp) {
+	deleteservicecmd := exec.Command("curl", "-XPUT", "http://"+config.GetString("global.consulipport")+"/v1/agent/service/deregister/"+id)
+	stdout, _ := deleteservicecmd.StdoutPipe()
+	defer stdout.Close()
+	err := deleteservicecmd.Start()
+	if err != nil {
+		fmt.Println("执行删除items "+id+"任务失败，错误详情：", err)
+		result.Msg = "执行删除items " + id + "任务失败"
+		result.Code = "503"
+	} else {
+		res, _ := ioutil.ReadAll(stdout)
+		resdata := string(res)
+		if resdata != "" {
+			result.Code = "200"
+			result.Msg = resdata
+		} else {
+			result.Code = "200"
+			result.Msg = "删除consul任务成功"
+		}
+	}
+	log.Println(id + result.Msg)
+	return
+}
+
 func ConsulregisterAlarm(config *viper.Viper, information Registration_Alarm) (result Resp) {
 	json_value := "{\"alert\": \"" + information.Alert + "\",\"expr\": \"" + information.Expr + "\",\"for\": \"" + information.For + "\",\"labels\":{\"severity\":\"" + information.Labels.Severity + "\",\"env\":\"" + information.Labels.Env + "\",\"project\":\"" + information.Labels.Project + "\"},\"annotations\":{\"description\":\"" + information.Annotations.Description + "\",\"summary\":\"" + information.Annotations.Summary + "\"}}"
 	log.Println("注册consul alarn 的json:" + json_value)
@@ -103,30 +135,6 @@ func ConsulregisterAlarm(config *viper.Viper, information Registration_Alarm) (r
 		}
 	}
 	log.Println(information.Alert + " is " + result.Msg)
-	return
-}
-
-func ConsuldownlineItems(config *viper.Viper, id string) (result Resp) {
-	deleteservicecmd := exec.Command("curl", "-XPUT", "http://"+config.GetString("global.consulipport")+"/v1/agent/service/deregister/"+id)
-	stdout, _ := deleteservicecmd.StdoutPipe()
-	defer stdout.Close()
-	err := deleteservicecmd.Start()
-	if err != nil {
-		fmt.Println("执行删除items "+id+"任务失败，错误详情：", err)
-		result.Msg = "执行删除items " + id + "任务失败"
-		result.Code = "503"
-	} else {
-		res, _ := ioutil.ReadAll(stdout)
-		resdata := string(res)
-		if resdata != "" {
-			result.Code = "200"
-			result.Msg = resdata
-		} else {
-			result.Code = "200"
-			result.Msg = "删除consul任务成功"
-		}
-	}
-	log.Println(id + result.Msg)
 	return
 }
 
