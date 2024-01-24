@@ -78,7 +78,11 @@ func main() {
 	http.HandleFunc("/downlineitemspost", apis.DownlineItemspost(config))
 
 	http.HandleFunc("/registeredalarm", apis.RegisteredAlarm(config))
-	http.HandleFunc("/downlinealarm", apis.DownlineAlarm(config))
+	http.HandleFunc("/registeredalarms", apis.RegisteredAlarms(config))
+
+	http.HandleFunc("/downlinealarmget", apis.DownlineAlarmsget(config))
+	http.HandleFunc("/downlinealarmpost", apis.DownlineAlarmsget(config))
+
 	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
 	http.HandleFunc("/dingdingrobotSend", apis.DingdingrobotSend(config))
 	http.HandleFunc("/transfertoloki", apis.TransferToLoki(config))

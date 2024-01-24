@@ -35,6 +35,10 @@ type Ddownline_nformations struct {
 	Itemids []string `"itemids"`
 }
 
+type Ddownline_alarms struct {
+	Alarmids []string `"alarmids"`
+}
+
 type Registration_Alarm struct {
 	Alert  string `json:"alert"`
 	Expr   string `json:"expr"`
@@ -48,6 +52,9 @@ type Registration_Alarm struct {
 		Description string `json:"description"`
 		Summary     string `json:"summary"`
 	} `json:"annotations"`
+}
+type Registration_Alarms struct {
+	Values []Registration_Alarm `json:"values"`
 }
 
 func isPhoneNum(s string) bool {
@@ -148,15 +155,15 @@ func ConsuldownlineAlarm(config *viper.Viper, id string) (result Resp) {
 		result.Msg = "执行删除alarm " + id + "任务失败"
 		result.Code = "503"
 	} else {
-		res, _ := ioutil.ReadAll(stdout)
-		resdata := string(res)
-		if resdata != "" {
-			result.Code = "200"
-			result.Msg = resdata
-		} else {
-			result.Code = "200"
-			result.Msg = "删除consul任务成功"
-		}
+		// res, _ := ioutil.ReadAll(stdout)
+		// resdata := string(res)
+		// if resdata != "" {
+		// 	result.Code = "200"
+		// 	result.Msg = resdata
+		// } else {
+		result.Code = "200"
+		result.Msg = "删除alarm " + id + " 成功"
+		// }
 	}
 	log.Println("delete alarm " + id + " " + result.Msg)
 	return

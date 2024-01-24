@@ -89,16 +89,6 @@ func DownlineItemspost(config *viper.Viper) func(writer http.ResponseWriter, req
 func RegisteredAlarm(config *viper.Viper) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		var information methods.Registration_Alarm
-
-		// data, err := ioutil.ReadAll(request.Body)
-		// defer request.Body.Close()
-		// if err == nil && data != nil {
-
-		// if err := json.Unmarshal(bodystr, &information); err != nil {
-		// 	log.Fatal(err)
-		// }
-
-		// bodystr := mahonia.NewDecoder("gbk").NewReader(request.Body)
 		if err := json.NewDecoder(request.Body).Decode(&information); err != nil {
 			request.Body.Close()
 			log.Println(err)
@@ -111,14 +101,53 @@ func RegisteredAlarm(config *viper.Viper) func(writer http.ResponseWriter, reque
 	}
 }
 
-// get接口接收下线告警项，单条执行
-func DownlineAlarm(config *viper.Viper) func(writer http.ResponseWriter, request *http.Request) {
+//post接口接收json数据 注册监控项目。单条执行
+func RegisteredAlarms(config *viper.Viper) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		request.ParseForm()
-		id, _ := request.Form["alarmid"]
-		result := methods.ConsuldownlineAlarm(config, id[0])
-		if err := json.NewEncoder(writer).Encode(result); err != nil {
+		var informations methods.Registration_Alarms
+		if err := json.NewDecoder(request.Body).Decode(&informations); err != nil {
+			request.Body.Close()
 			log.Println(err)
 		}
+
+		for _, information := range informations.Values {
+			result := methods.ConsulregisterAlarm(config, information)
+			if err := json.NewEncoder(writer).Encode(result); err != nil {
+				log.Println(err)
+			}
+		}
+	}
+}
+
+// get接口接收下线告警项，可以多个：downlinealarm?alarmid=serviceproducer_not_available&alarmid=serviceproducer_not_available2
+func DownlineAlarmsget(config *viper.Viper) func(writer http.ResponseWriter, request *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		request.ParseForm()
+		ids, _ := request.Form["alarmid"]
+		for _, id := range ids {
+			result := methods.ConsuldownlineAlarm(config, id)
+			if err := json.NewEncoder(writer).Encode(result); err != nil {
+				log.Println(err)
+			}
+		}
+
+	}
+}
+
+// post接口接收下线告警项，可以多个：downlinealarm?alarmid=serviceproducer_not_available&alarmid=serviceproducer_not_available2
+func DownlineAlarmspost(config *viper.Viper) func(writer http.ResponseWriter, request *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		var downlinealarmids methods.Ddownline_alarms
+		if err := json.NewDecoder(request.Body).Decode(&downlinealarmids); err != nil {
+			request.Body.Close()
+			log.Println(err)
+		}
+		for _, alarmid := range downlinealarmids.Alarmids {
+			result := methods.ConsuldownlineAlarm(config, alarmid)
+			if err := json.NewEncoder(writer).Encode(result); err != nil {
+				log.Println(err)
+			}
+		}
+
 	}
 }
