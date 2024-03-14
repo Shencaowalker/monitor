@@ -12,8 +12,8 @@ require (
 	github.com/grafana/loki v1.6.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
-	github.com/prometheus/client_golang v1.17.0
-	github.com/prometheus/common v0.44.0
+	github.com/prometheus/client_golang v1.18.0
+	github.com/prometheus/common v0.45.0
 	github.com/prometheus/prometheus v1.8.2-0.20200727090838-6f296594a852
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.4
@@ -53,6 +53,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/digitalocean/godo v1.42.0 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200706150819-a40b877fbb9e+incompatible // indirect
@@ -63,6 +64,7 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/garyburd/redigo v1.6.4 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.9.1 // indirect
 	github.com/go-kit/kit v0.10.0 // indirect
@@ -76,6 +78,8 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.17.0 // indirect
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/googleapis v1.1.0 // indirect
 	github.com/gogo/status v1.1.0 // indirect
@@ -102,6 +106,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/serf v0.9.8 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -113,6 +118,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
+	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -129,9 +135,9 @@ require (
 	github.com/pelletier/go-toml/v2 v2.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_model v0.4.1-0.20230718164431-9a2bf3000d16 // indirect
+	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.10.1-0.20230714054209-2f4150c63f97 // indirect
-	github.com/prometheus/procfs v0.11.1 // indirect
+	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e // indirect
 	github.com/sercand/kuberesolver/v4 v4.0.0 // indirect

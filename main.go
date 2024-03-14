@@ -73,19 +73,18 @@ func main() {
 	// } else if istask == "false" {
 	http.HandleFunc("/registereditem", apis.RegisteredItem(config))
 	http.HandleFunc("/registereditems", apis.RegisteredItems(config))
-
 	http.HandleFunc("/downlineitemsget", apis.DownlineItemsget(config))
 	http.HandleFunc("/downlineitemspost", apis.DownlineItemspost(config))
-
 	http.HandleFunc("/registeredalarm", apis.RegisteredAlarm(config))
 	http.HandleFunc("/registeredalarms", apis.RegisteredAlarms(config))
-
 	http.HandleFunc("/downlinealarmget", apis.DownlineAlarmsget(config))
 	http.HandleFunc("/downlinealarmpost", apis.DownlineAlarmsget(config))
-
 	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
 	http.HandleFunc("/dingdingrobotSend", apis.DingdingrobotSend(config))
 	http.HandleFunc("/transfertoloki", apis.TransferToLoki(config))
+
+	// http.Handle("/metrics", apis.Exporterexam())
+	http.Handle("/metrics", apis.Exporterexamaaa())
 	// http.HandleFunc("/swagger/*any", swaggerFiles.WrapHandler(swaggerFiles.Handler))
 
 	http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)

@@ -1,0 +1,459 @@
+install_dir: /data
+
+ssh:
+  user: aloudata       # 普通用户，用来SSH登录机器和启动服务
+  password: VPwSrFw2lVfFokJ
+  port: 22
+  create_user: false    # 如果用户不存在则需要创建
+  super_admin:         # 超级管理员信息，创建普通用户时需要用到，create_user: false  则无需填写
+    user: root         # 超级管理员账号
+    password: 123@asd  #超级管理员账号的密码
+  agent: 
+    enable: false # 当 enable: false 的时候 不需要关心, agent的用户名和密码使用 ssh.user/ssh.password , 
+    command_server_port: 20001
+    rsyncd_server_port: 20002
+  
+  master_ip: 1.1.1.1   # 部署机器的信息
+  nodes:
+    - ip: 1.1.1.1
+      cpu: 4
+      memory: 8
+      sysDisk: 40
+      dataDisk: 500
+      diskType: sata
+    - ip: 2.2.2.2
+      cpu: 4
+      memory: 8
+      sysDisk: 40
+      dataDisk: 500
+      diskType: sata
+    - ip: 3.3.3.3
+      cpu: 4
+      memory: 8
+      sysDisk: 40
+      dataDisk: 500
+      diskType: sata
+
+jdk:
+  dir_name: jdk1.8.0_191
+  version: 1.8.0_191
+  package_name: jdk1.8.0_191-aloudata.tar.gz
+
+jvm_agent:
+  package_name: jvm.tar.gz
+  dirname: jvm
+  config_name: simple-config.yml
+  agent_name: jmx_prometheus_javaagent-0.15.0.jar
+
+nacos:
+  is_install: true
+  is_cluster: false
+  service: 8848
+  namespace: demo
+  server:
+    - 1.1.1.1
+  package_name: nacos-server-2.0.3.tar.gz
+
+zookeeper:
+  is_install: true
+  is_cluster: true
+  service_port: 2181
+  server:
+    - 1.1.1.1
+    - 2.2.2.2
+    - 3.3.3.3
+  package_name: apache-zookeeper-3.6.3-bin-aloudata.tar.gz
+  dir_name: apache-zookeeper-3.6.3-bin
+  data_dir: null
+  service: null
+
+kafka:
+  is_install: true
+  is_cluster: true
+  internal_zk: false
+  service_port: 9092
+  server:
+    - 1.1.1.1
+    - 2.2.2.2
+    - 3.3.3.3
+  package_name: kafka_2.13-3.0.0.tar.gz
+  dir_name: kafka_2.13-3.0.0
+  logs_dir: null
+  service: null
+  depend:
+    - zookeeper
+
+redis:
+  is_install: true
+  service_port: 6379
+  server:
+    - 1.1.1.1
+  password: 1qaz!QAZ
+  package_name: redis-6.2.6.tar.gz
+  dir_name: redis
+  data_dir: null
+  log_file_dir: null
+
+mysql:
+  is_install: true
+  service_port: 3306
+  server:
+    - 1.1.1.1
+  username: aloudata
+  password: 1qaz!QAZ
+  service: null
+  package_name: mysql-8.0.27-aloudata.tar.gz
+  dir_name: mysql-8.0.27
+  data_dir: null  # default ${install_dir}/data/mysql_data
+
+postgres:
+  is_install: true
+  service_port: 5432
+  server:
+    - 1.1.1.1
+  username: aloudata
+  password: 1qaz!QAZ
+  service: null
+  package_name: postgresql-14.4.tar.gz
+  dir_name: postgresql-14.4
+  data_dir: null
+
+mongodb:
+  is_install: true
+  service_port: 27017
+  server:
+    - 1.1.1.1
+  username: aloudata
+  password: 1qaz!QAZ
+  service: null
+  package_name: mongodb-linux-x86_64-rhel70-5.0.23.tgz
+  dir_name: mongodb-linux-x86_64-rhel70-5.0.23
+  data_dir: null
+
+nginx:
+  is_install: true
+  server:
+    - 1.1.1.1
+  package_name: nginx-1.24.0-aloudata.tar.gz
+  dir_name: nginx
+
+nebula:
+  is_cluster: true
+  metad:
+    service_port: 9559
+    server:
+      - 192.168.56.216
+  graph_and_storage:
+    service_port: 9669
+    server:
+      - 192.168.56.216
+  username: root
+  password: nebula
+  service: 1.1.1.1:9559,2.2.2.2:9559,3.3.3.3:9559
+  package_name: nebula3.3.0-arm64-bin.tgz
+  nebula_console_package_name:  nebula-console-linux-arm64-v3.6.0
+  nebula_studio:
+    is_install: false
+    service_port: 7001
+    servrer: 1.1.1.1
+    package_name: nebula_studio.tgz
+
+airflow:
+  service_port: 8079 
+  server: 1.1.1.1
+  package_name: airflow2.5.1-arm64-bin.tgz
+  username: aloudata
+  password: VPwSrFw2lVfFokJ
+
+starrocks:
+  is_cluster: true
+  fe:
+    service_port: 9030
+    jmx_Xmx: -Xmx16384m
+    data_dir:
+    service_port:
+    server:
+      - 1.1.1.1
+      - 2.2.2.2
+      - 3.3.3.3
+  be:
+    data_dir:
+    service_port: 9050
+    server:
+      - 1.1.1.1
+      - 2.2.2.2
+      - 3.3.3.3
+  cn:  # 注意：cn节点不能与be节点混合部署, 非必要可以不部署。
+    is_install: false
+    service_port: 9050
+    server:
+      - 4.4.4.4
+      - 5.5.5.5
+      - 6.6.6.6
+  password: 123@asd
+  package_name: StarRocks-3.1.2-aloudata.tar.gz
+  dir_name: StarRocks-3.1.2
+
+ranger:
+  is_install: true
+  rangerAdmin_password: Admin123
+  service_port: 6080
+  server:
+    - 1.1.1.1
+  package_name: ranger-2.4.0-admin-aloudata.tar.gz
+  dir_name: ranger-2.4.0-admin
+  logs_dir: null
+  depend:
+    - mysql
+
+mointor:
+  enabled: true
+  server:
+    - 1.1.1.1
+  data_dir: null
+  prometheus:
+    service_port: 9200
+    data_retention: 30d
+    package_name: prometheus.tar.gz
+    dir_name: prometheus
+  consul:
+    report_uri: /v1/agent/service/register
+    env: demo
+    interval: 5s
+    service_port: 8500
+    package_name: consul.tar.gz
+    dir_name: consul
+  grafana:
+    service_port: 3000
+    package_name: grafana-9.0.2.linux-amd64.tar.gz
+    dir_name: grafana
+  node_exporter:
+    is_install: true
+    service_port: 9100
+    package_name: node_exporter-1.3.0.linux-amd64.tar.gz
+    dir_name: node_exporter-1.3.0.linux-amd64
+
+
+joinsight:
+  public:
+    is_dubbo: true
+    health_uri: /actuator/health
+    jvm_opt: ""
+    install_dir: /data
+    login_page: http://dev.anymetrics.aloudata.work/login
+    domain: dev.anymetrics.aloudata.work
+  application:
+    jscip:
+      jvm_opts: -Xms4g -Xmx4g
+      jvm_agent_port: 3081
+      service_port: 8081
+      health_port: 28888
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      depend:
+        - nacos
+        - redis
+        - postgres
+    semantic:
+      jvm_opts: -Xms4g -Xmx8g
+      jvm_agent_port: 3082
+      service_port: 8085
+      health_port: 29999
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      depend:
+        - nacos
+        - redis
+        - postgres
+    anymetrics:
+      jvm_opts: -Xms4g -Xmx8g
+      jvm_agent_port: 3082
+      service_port: 8085
+      health_port: 27777
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      web:
+        package_name: anymetrics_web.tar.gz
+        dir_name: anymetrics_web
+      depend:
+        - nacos
+        - redis
+        - postgres
+
+bigmeta:
+  public:
+    health_uri: /actuator/health
+    jvm_opt: ""
+    install_dir: /data
+    is_dubbo: false
+  application:
+    bigmeta:
+      package_type: tar # 默认为jar
+      package_tar_name: bigmeta.tar.gz # 如果 package_type: tar 则 package_tar_name 必填
+      package_dir_name: bigmeta # 默认为应用的名字
+      package_name: bigmeta.jar # 默认为: ${APP}.jar
+      jvm_opts:
+      jvm_agent_port: 3082
+      service_port: 8085
+      health_port: 29999
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      web:
+        package_name: bigmeta_web.tar.gz
+        dir_name: bigmeta_web
+      depend:
+        - redis
+        - mysql
+        - nebula
+    ame:
+      package_type: tar # 默认为jar
+      package_tar_name: ame.tar.gz # 如果 package_type: tar 则 package_tar_name 必填
+      package_dir_name: ame # 默认为应用的名字
+      package_name: ame.jar # 默认为: ${APP}.jar
+      jvm_opts:
+      jvm_agent_port: 3083
+      service_port: 8083
+      health_port: 29999
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      depend:
+        - redis
+        - mysql
+        - nebula
+    bigddg:
+      package_type: tar # 默认为jar
+      package_tar_name: bigddg.tar.gz # 如果 package_type: tar 则 package_tar_name 必填
+      package_dir_name: bigddg # 默认为应用的名字
+      package_name: bigddg.jar # 默认为: ${APP}.jar
+      jvm_opts:
+      jvm_agent_port: 3082
+      service_port: 8082
+      health_port: 29999
+      data_dir: /data/file
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      depend:
+        - redis
+        - postgres
+
+airengine:
+  public:
+    is_dubbo: true
+    health_uri: /actuator/health
+    # spring_jar_opt: -Dspring.profiles.active=demo -Dnacos.host=10.10.5.15
+    jvm_opt: ""
+    install_dir: /data
+    login_page: http://cip.aloudata.work:8083/login
+    home_page: http://dws.aloudata.work:8082/
+    domain: aloudata.work
+    cip-static-locations: file:/data/cip_web
+    cip-static_resource_path: /dist
+    cip-static_version: 0.22.1
+    dws-static-locations: file:/data/workstation_web
+    dws-static_resource_path: /dist
+    dws-static_version: 0.22.1
+  application:
+    aidos:
+      is_cluster: true # master必须大于等于2个节点
+      package_dir_name: airengine.tar.gz
+      package_name: airengine
+      jvm_agent_port: 4047
+      jvm_opts:
+      master:
+        max_memory_size_mb: 55000
+        server:
+          - 1.1.1.1
+          - 2.2.2.2
+      coordinator:
+        max_memory_size_mb: 55000
+        server:
+          - 1.1.1.1
+          - 2.2.2.2
+      work:
+        max_memory_size_mb: 60000
+        server:
+          - 1.1.1.1
+          - 2.2.2.2
+    kyuubi:
+      is_install: true
+      package_dir_name: apache-kyuubi-1.7.1-bin-aloudata.tar.gz
+      package_name: apache-kyuubi-1.7.1-bin
+      service_port: 10009
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+    arctic:
+      package_type: tar # 默认为jar
+      package_tar_name: arctic.tar.gz # 如果 package_type: tar 则 package_tar_name 必填
+      package_dir_name: arctic # 默认为应用的名字
+      package_name: arctic.jar # 默认为: ${APP}.jar
+      jvm_opts: -Xms4g -Xmx12g
+      jvm_agent_port: 3090
+      service_port: 8090
+      health_port: 29999
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      depend:
+        - kafka
+        - nacos
+        - redis
+        - mysql
+    dws:
+      jvm_opts: -Xms4g -Xmx12g
+      jvm_agent_port: 3082
+      service_port: 8082
+      health_port: 29999
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      depend:
+        - kafka
+        - nacos
+        - redis
+        - mysql
+    cip:
+      jvm_opts: 
+      jvm_agent_port: 3081
+      service_port: 8082
+      health_port: 29999
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      depend:
+        - kafka
+        - nacos
+        - redis
+        - mysql
+    das:
+      jvm_opts: 
+      jvm_agent_port: 3085
+      service_port: 8085
+      health_port: 29999
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      depend:
+        - kafka
+        - nacos
+        - redis
+        - mysql
+    tse:
+      jvm_opts: -Xms4g -Xmx12g
+      jvm_agent_port: 3086
+      service_port: 8086
+      health_port: 29999
+      server:
+        - 1.1.1.1
+        - 2.2.2.2
+      depend:
+        - kafka
+        - nacos
+        - redis
+        - mysql
