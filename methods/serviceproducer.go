@@ -73,7 +73,7 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 	}
 	for i, j := range serviceProducerList {
 		normalcount, _ := strconv.Atoi(j)
-		aironserviceproducerhealthycount = "aironserviceproducerhealthycount{name=\"" + i + "\",healthytcount=\"0\",normalcount=\"" + j + "\"} " + "0" + "\n"
+		aironserviceproducerhealthycount = "aironserviceproducerhealthycount{name=\"" + i + "\",healthytcount=\"0\"" + ",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "0" + "\n"
 		for _, k := range currentserviceproducer.ServiceList {
 			if i == k.Name {
 				if normalcount == k.HealthyInstanceCount {
@@ -94,20 +94,25 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 }
 
 //更新pushgateway指标信息 改成根据指标来进行
-func UpdateMetrics(config *viper.Viper) {
-	deletecmd := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/serviceproducer")
+func UpdateNacosMetrics(config *viper.Viper, filename string, metricsname string) error {
+	deletecmd := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/"+metricsname)
 	err := deletecmd.Run()
 	if err != nil {
 		log.Println("删除 serviceproducer 指标报错 err 继续执行")
+		return err
 	} else {
 		log.Println("DELETE serviceproducer SECCESS")
 	}
-	pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@Status.txt", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/serviceproducer")
+	log.Println("curl", "-XPOST", "--data-binary", "@"+filename, "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/"+metricsname)
+	pushcmd := exec.Command("curl", "-XPOST", "--data-binary", "@"+filename, "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/"+metricsname)
+
 	err = pushcmd.Run()
 	if err != nil {
 		log.Println("上传指标报错 err 继续执行")
+		return err
 	} else {
 		log.Println("UPLOAD serviceproducer SECCESS")
+		return nil
 	}
 }
 

@@ -75,7 +75,6 @@ func ConsulregisterItem(config *viper.Viper, information Registration_nformation
 	registrationcmd := exec.Command("curl", "-XPUT", "-d", json_value, "http://"+config.GetString("global.consulipport")+"/v1/agent/service/register")
 	stdout, _ := registrationcmd.StdoutPipe()
 	err := registrationcmd.Start()
-
 	if err != nil {
 		fmt.Println("执行注册consul item 任务失败,错误详情：", err)
 		result.Msg = "执行注册consul item 任务失败"
@@ -90,6 +89,11 @@ func ConsulregisterItem(config *viper.Viper, information Registration_nformation
 			result.Code = "200"
 			result.Msg = "注册item成功"
 		}
+	}
+	if err := registrationcmd.Wait(); err != nil { //避免僵尸进程
+		fmt.Println("等待进程退出失败,错误详情：", err)
+		result.Msg = "等待进程退出失败"
+		result.Code = "504"
 	}
 	log.Println(information.Id + "_" + information.App_type + "_" + information.Address + "_" + information.Port + result.Msg)
 	return
@@ -115,6 +119,11 @@ func ConsuldownlineItem(config *viper.Viper, id string) (result Resp) {
 			result.Msg = "删除consul任务成功"
 		}
 	}
+	if err := deleteservicecmd.Wait(); err != nil { //避免僵尸进程
+		fmt.Println("等待进程退出失败,错误详情：", err)
+		result.Msg = "等待进程退出失败"
+		result.Code = "504"
+	}
 	log.Println(id + result.Msg)
 	return
 }
@@ -125,7 +134,6 @@ func ConsulregisterAlarm(config *viper.Viper, information Registration_Alarm) (r
 	registrationcmd := exec.Command("curl", "-XPUT", "-d", json_value, "http://"+config.GetString("global.consulipport")+"/v1/kv/prometheus/rules/"+information.Alert)
 	stdout, _ := registrationcmd.StdoutPipe()
 	err := registrationcmd.Start()
-
 	if err != nil {
 		fmt.Println("执行注册consul alarm 任务失败,错误详情：", err)
 		result.Msg = "执行注册consul alarm 任务失败"
@@ -140,6 +148,11 @@ func ConsulregisterAlarm(config *viper.Viper, information Registration_Alarm) (r
 			result.Code = "200"
 			result.Msg = "注册alarm成功"
 		}
+	}
+	if err := registrationcmd.Wait(); err != nil { //避免僵尸进程
+		fmt.Println("等待进程退出失败,错误详情：", err)
+		result.Msg = "等待进程退出失败"
+		result.Code = "504"
 	}
 	log.Println(information.Alert + " is " + result.Msg)
 	return
@@ -164,6 +177,11 @@ func ConsuldownlineAlarm(config *viper.Viper, id string) (result Resp) {
 		result.Code = "200"
 		result.Msg = "删除alarm " + id + " 成功"
 		// }
+	}
+	if err := deleteservicecmd.Wait(); err != nil { //避免僵尸进程
+		fmt.Println("等待进程退出失败,错误详情：", err)
+		result.Msg = "等待进程退出失败"
+		result.Code = "504"
 	}
 	log.Println("delete alarm " + id + " " + result.Msg)
 	return

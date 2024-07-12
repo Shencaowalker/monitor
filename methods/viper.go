@@ -21,3 +21,5 @@ func Viper_reader() *viper.Viper {
 	
 	return config
 }
+
+

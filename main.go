@@ -80,11 +80,14 @@ func main() {
 	http.HandleFunc("/downlinealarmget", apis.DownlineAlarmsget(config))
 	http.HandleFunc("/downlinealarmpost", apis.DownlineAlarmsget(config))
 	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
-	http.HandleFunc("/dingdingrobotSend", apis.DingdingrobotSend(config))
+	http.HandleFunc("/updateNacosproducerMonitor", apis.UpdateNacosproducerMonitor(config))
+	http.HandleFunc("/updatetargetlogMetrics", apis.UpdatetargetlogMetrics(config))
+	http.HandleFunc("/dingdingrobotsend", apis.DingdingrobotSend(config))
+	http.HandleFunc("/dingdingrobotsendtest", apis.DingdingrobotSendtest(config))	
 	http.HandleFunc("/transfertoloki", apis.TransferToLoki(config))
 
 	// http.Handle("/metrics", apis.Exporterexam())
-	http.Handle("/metrics", apis.Exporterexamaaa())
+	// http.Handle("/metrics", apis.Exporterexamaaa())
 	// http.HandleFunc("/swagger/*any", swaggerFiles.WrapHandler(swaggerFiles.Handler))
 
 	http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
