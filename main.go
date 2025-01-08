@@ -8,6 +8,9 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	// swaggerFiles "github.com/swaggo/files"
+	// ginSwagger "github.com/swaggo/gin-swagger"sss
+	// "monitor/docs"
 )
 
 var (
@@ -69,12 +72,23 @@ func main() {
 	// 	}
 	// } else if istask == "false" {
 	http.HandleFunc("/registereditem", apis.RegisteredItem(config))
+	http.HandleFunc("/registereditems", apis.RegisteredItems(config))
+	http.HandleFunc("/downlineitemsget", apis.DownlineItemsget(config))
+	http.HandleFunc("/downlineitemspost", apis.DownlineItemspost(config))
 	http.HandleFunc("/registeredalarm", apis.RegisteredAlarm(config))
-	http.HandleFunc("/downlineitem", apis.DownlineItems(config))
-	http.HandleFunc("/downlinealarm", apis.DownlineAlarm(config))
+	http.HandleFunc("/registeredalarms", apis.RegisteredAlarms(config))
+	http.HandleFunc("/downlinealarmget", apis.DownlineAlarmsget(config))
+	http.HandleFunc("/downlinealarmpost", apis.DownlineAlarmsget(config))
 	http.HandleFunc("/updatenacosstandardconf", apis.UpdateNacosStandardConf(&config))
-	http.HandleFunc("/dingdingrobotSend", apis.DingdingrobotSend(config))
+	http.HandleFunc("/updateNacosproducerMonitor", apis.UpdateNacosproducerMonitor(config))
+	http.HandleFunc("/updatetargetlogMetrics", apis.UpdatetargetlogMetrics(config))
+	http.HandleFunc("/dingdingrobotsend", apis.DingdingrobotSend(config))
+	http.HandleFunc("/dingdingrobotsendtest", apis.DingdingrobotSendtest(config))	
 	http.HandleFunc("/transfertoloki", apis.TransferToLoki(config))
+
+	// http.Handle("/metrics", apis.Exporterexam())
+	// http.Handle("/metrics", apis.Exporterexamaaa())
+	// http.HandleFunc("/swagger/*any", swaggerFiles.WrapHandler(swaggerFiles.Handler))
 
 	http.ListenAndServe("0.0.0.0:"+config.GetString("global.serviceport"), nil)
 	// } else {

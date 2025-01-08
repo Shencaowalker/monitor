@@ -100,3 +100,54 @@ serviceport=8501
         http://127.0.0.1:8501/downline?id=consul_exporter_all_10.5.101.3_13100
 
 
+
+
+## 更新生产者指标
+curl -X get http://127.0.0.1:8502/updateNacosproducerMonitor
+
+## 更新生产者基线（每次上线需要手动触发一次）
+curl -X get http://127.0.0.1:8502/updatenacosstandardconf
+
+## 获取日志报错指标
+curl -X get http://127.0.0.1:8502/updatetargetlogMetrics
+
+
+### 日志相关配置
+[big_logs]
+label_list={"project": "as","environment":"joinsight-testing"}
+label_name=starttime traceid status api abstractaaa
+lokiexclre=
+lokire=ERROR
+recordslimit=100000
+regex=(\d+-\d+-\d+\s\S+)\s\[(.*?)\]\s\[.*?\]\s(\w+)\s+(\S+)\s-\s(.*)
+
+[can_logs]
+label_list={"project": "as","environment":"joinsight-testing"}
+label_name=starttime traceid status api abstractaaa
+lokiexclre=success=true
+lokire=ERROR
+recordslimit=100000
+regex=(\d+-\d+-\d+\s\S+)\s\[(.*?)\]\s\[.*?\]\s(\w+)\s+(\S+)\s-\s(.*)
+
+[dingdingwebhook]
+listrebots={"air":{"test":{"accessToken":"dd0dfc3e5f598a4c94b6bcfebbfc1d88281898b9658642294d6ff60f11a4f149","secret":"SECf20d8b02a0dee2df7dd02d2ff55498d0f7508fb234e0cadc4e5adace2e74acfe"},"prod":{"accessToken":"","secret":""}},"joinsight":{"test":{"accessToken":"dd0dfc3e5f598a4c94b6bcfebbfc1d88281898b9658642294d6ff60f11a4f149","secret":"SECf20d8b02a0dee2df7dd02d2ff55498d0f7508fb234e0cadc4e5adace2e74acfe"},"prod":{"accessToken":"","secret":""}},"bigmeta":{"test":{"accessToken":"dd0dfc3e5f598a4c94b6bcfebbfc1d88281898b9658642294d6ff60f11a4f149","secret":"SECf20d8b02a0dee2df7dd02d2ff55498d0f7508fb234e0cadc4e5adace2e74acfe"},"prod":{"accessToken":"","secret":""}},"default":{"default":{"accessToken":"8f3a1b5cd395675557bbd7a5fb80c666b66866f49f48a6d165f9ae3fa147ef28","secret":""}}}
+
+[global]
+cmbalarminterface=http://10.5.100.4:5003/get?message=
+consulipport=10.5.101.3:8500
+delayupdateseconds=15
+nacosip=10.16.0.106
+nacosport=8848
+namespaceid=can-demo
+pageno=1
+pagesize=100
+pushgatewayipport=10.5.101.3:9091
+servicelist=jscip semantic
+serviceport=8502
+
+[mixedformat]
+collectionscopeseconds=3600
+label_len=128
+latencycollectionseconds=2000
+logs=can_logs big_logs
+lokiipport=10.5.20.35:3100

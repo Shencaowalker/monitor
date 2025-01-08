@@ -1,0 +1,91 @@
+postgres:
+  is_install: true
+  service_port: 5432
+  server:
+    - 127.0.0.1
+  username: postgres
+  password: postgres
+  service: null
+  package_name: postgresql-14.4.tar.gz
+  dir_name: postgresql-14.4
+  data_dir: null
+  metrics:
+    cycle: 0.5m
+    items:
+      max_connections:
+        sql_content: "show max_connections"  
+        help: "Maximum number of connections"
+        name: "max_connections"
+      current_connections:
+        sql_content: "select count(*) from pg_stat_activity" 
+        help: "The current number of connections"
+        name: "current_connections"
+      #current_qps: 
+        #sql_content: "with a as (select sum(calls) s, sum(case when ltrim(query,' ') ~* '^select' then calls else 0 end) q from pg_stat_statements), b as (select sum(calls) s, sum(case when ltrim(query,' ') ~* '^select' then calls else 0 end) q from pg_stat_statements , pg_sleep(1)) select  b.s-a.s from a,b;" 
+        #help: "Current QPS, including read/write"
+        #name: "current_qps"
+      current_deadlocks: 
+        sql_content: "select sum(deadlocks) from pg_stat_database" 
+        help: "The current number of deadlocks"
+        name: "current_deadlocks"
+      current_active_sessions: 
+        sql_content: "select count(*) from pg_stat_activity where state='active'" 
+        help: "The number of sessions that are currently active"
+        name: "current_active_sessions"
+      current_idle_sessions:
+        sql_content: "select count(*) from pg_stat_activity where state='idle'" 
+        help: "The number of sessions that are currently idle"
+        name: "current_idle_sessions"
+      current_wait_event_sessions:
+        sql_content: "select count(*) from pg_stat_activity where wait_event_type is not null" 
+        help: "The number of sessions that are currently wait_event"
+        name: "current_wait_event_sessions"
+      current_slow_10s_sql_nums: 
+        sql_content: "select count(*) from pg_stat_activity where state='active' and now()-query_start > interval '10 second'"   
+        help: "The number of SQL statements that are greater than 10s seconds"
+        name: "current_slow_10s_sql_nums"
+      current_slow_10s_transactions: 
+        sql_content: "select count(*) from pg_stat_activity where now()-xact_start > interval '10 second'" 
+        help: "The number of transactions is currently greater than 10s seconds"
+        name: "current_slow_N_transactions"
+      current_idle_10s_transactions:
+        sql_content: "select count(*) from pg_stat_activity where state='idle' and now()-state_change > interval '10 second'"
+        help: "The number of transactions is currently idle than 10s seconds"
+        name: "current_idle_10s_transactions"
+      current_wait_event_10s_idle_transactions: 
+        sql_content: "select count(*) from pg_stat_activity where wait_event_type is not null and now()-state_change > interval '10 second'"
+        help: "The number of transactions is currently wait_event than 10s seconds"
+        name: "current_wait_event_10s_idle_transactions"
+
+
+install_dir: /data
+
+redis:
+  is_install: true
+  service_port: 6379
+  server:
+    - 1.1.1.1
+  password: 1qaz!QAZ
+  package_name: redis-6.2.6.tar.gz
+  dir_name: redis
+  data_dir: null
+  log_file_dir: null
+  dbspace: 0
+  metrics:
+    cycle: 0.5m
+    items:
+      used_memory: 
+        help: "redis memory used"
+        name: "used_memory"
+      connected_slaves: 
+        help: "connected_slaves"
+        name: "connected_slaves"
+      connected_clients: 
+        help: "connected_clients"
+        name: "connected_clients"
+      evicted_keys: 
+        help: "evicted_keys"
+        name: "evicted_keys"
+      keyspace_misses: 
+        help: "keyspace_misses"
+        name: "keyspace_misses"

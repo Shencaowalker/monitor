@@ -56,7 +56,8 @@ type Alarmdata struct {
 	TruncatedAlerts int    `json:"truncatedAlerts"`
 }
 
-func Sendmessage(config *viper.Viper, alarmdata Alarmdata) {
+func Sendmessage(config *viper.Viper, alarmdata Alarmdata) error  {
+	var err error
 	for _, j := range alarmdata.Alerts {
 		if j.Labels.Env == "" || j.Labels.Project == "" {
 			fmt.Println(" j.Labels.Env is:", j.Labels.Env, "j.Labels.Project is:", j.Labels.Project)
@@ -65,7 +66,7 @@ func Sendmessage(config *viper.Viper, alarmdata Alarmdata) {
 				AccessToken: config.GetStringMap("dingdingwebhook.listrebots")["default"].(map[string]interface{})["default"].(map[string]interface{})["accessToken"].(string),
 				Secret:      config.GetStringMap("dingdingwebhook.listrebots")["default"].(map[string]interface{})["default"].(map[string]interface{})["secret"].(string),
 			}
-			d.SendMessageText("这是普通消息")
+			err = d.SendMessageText("alert这是普通消息")
 		} else {
 			fmt.Println(" j.Labels.Env is:", j.Labels.Env, "j.Labels.Project is:", j.Labels.Project)
 			fmt.Println("accesstoken is:", config.GetStringMap("dingdingwebhook.listrebots")[j.Labels.Project].(map[string]interface{})[j.Labels.Env].(map[string]interface{})["accessToken"].(string), "secret is:", config.GetStringMap("dingdingwebhook.listrebots")[j.Labels.Project].(map[string]interface{})[j.Labels.Env].(map[string]interface{})["secret"].(string))
@@ -76,32 +77,51 @@ func Sendmessage(config *viper.Viper, alarmdata Alarmdata) {
 			// aaa :=j.Labels.Project+"告警\nalarm type: 告警触发\n"+'alarm message'+":"+info.get('alertname')+"\n"+"alarm detail"+":"+i.get('annotations').get('description')+"\n"+"alarm startsAt"+":"+utc_to_cst(i.get('startsAt'))+"\n持续时间: "+distance_to_now_minute(i.get('startsAt'))+"分钟\n
 
 			// fmt.Println(alarmdata)
-			d.SendMessageText("这是bu普通消息")
+			err = d.SendMessageText("alert这是bu普通消息")
 			// d.Se
 		}
+		if err != nil {
+			fmt.Println("发送消息失败，失败信息为:", err)
+		}
+		fmt.Println("发送消息成功，消息为")
 	}
-
-	// message := "{\"id\": \"" + information.Id + "_" + information.App_type + "_" + information.Address + "_" + information.Port + "\",\"name\": \"" + information.Group + "_" + information.Tags + "\",\"address\": \"" + information.Address + "\",\"port\": " + information.Port + ",\"tags\": [\"" + information.Tags + "\"],\"meta\":{\"env\":\"" + information.Env + "\",\"m_type\":\"" + information.M_type + "\",\"app\":\"" + information.App_type + "\"},\"checks\": [{\"" + information.M_type + "\": \"" + information.Address + ":" + information.Port + "\", \"interval\": \"60s\"}]}"
-	// log.Println("注册consul item 的json:" + json_value)
-	// registrationcmd := exec.Command("curl", "-XPUT", "-d", json_value, "http://"+config.GetString("global.consulipport")+"/v1/agent/service/register")
-	// stdout, _ := registrationcmd.StdoutPipe()
-	// err := registrationcmd.Start()
-
-	// if err != nil {
-	// 	fmt.Println("执行注册consul item 任务失败,错误详情：", err)
-	// 	result.Msg = "执行注册consul item 任务失败"
-	// 	result.Code = "503"
-	// } else {
-	// 	res, _ := ioutil.ReadAll(stdout)
-	// 	resdata := string(res)
-	// 	if resdata != "" {
-	// 		result.Code = "200"
-	// 		result.Msg = resdata
-	// 	} else {
-	// 		result.Code = "200"
-	// 		result.Msg = "注册item成功"
-	// 	}
-	// }
-	// log.Println(information.Id + "_" + information.App_type + "_" + information.Address + "_" + information.Port + result.Msg)
-	// return
+	return err
 }
+
+func Sendmessagetest(config *viper.Viper, message string) error {
+	var err error
+	d := ding.Webhook{
+		AccessToken: config.GetStringMap("dingdingwebhook.listrebots")["default"].(map[string]interface{})["default"].(map[string]interface{})["accessToken"].(string),
+		Secret:      config.GetStringMap("dingdingwebhook.listrebots")["default"].(map[string]interface{})["default"].(map[string]interface{})["secret"].(string),
+	}
+	err = d.SendMessageText("这是普通消息")
+	if err != nil {
+		fmt.Println("发送消息失败，失败信息为:", err)
+	}
+	fmt.Println("发送消息成功")
+	return err
+}
+
+// message := "{\"id\": \"" + information.Id + "_" + information.App_type + "_" + information.Address + "_" + information.Port + "\",\"name\": \"" + information.Group + "_" + information.Tags + "\",\"address\": \"" + information.Address + "\",\"port\": " + information.Port + ",\"tags\": [\"" + information.Tags + "\"],\"meta\":{\"env\":\"" + information.Env + "\",\"m_type\":\"" + information.M_type + "\",\"app\":\"" + information.App_type + "\"},\"checks\": [{\"" + information.M_type + "\": \"" + information.Address + ":" + information.Port + "\", \"interval\": \"60s\"}]}"
+// log.Println("注册consul item 的json:" + json_value)
+// registrationcmd := exec.Command("curl", "-XPUT", "-d", json_value, "http://"+config.GetString("global.consulipport")+"/v1/agent/service/register")
+// stdout, _ := registrationcmd.StdoutPipe()
+// err := registrationcmd.Start()
+
+// if err != nil {
+// 	fmt.Println("执行注册consul item 任务失败,错误详情：", err)
+// 	result.Msg = "执行注册consul item 任务失败"
+// 	result.Code = "503"
+// } else {
+// 	res, _ := ioutil.ReadAll(stdout)
+// 	resdata := string(res)
+// 	if resdata != "" {
+// 		result.Code = "200"
+// 		result.Msg = resdata
+// 	} else {
+// 		result.Code = "200"
+// 		result.Msg = "注册item成功"
+// 	}
+// }
+// log.Println(information.Id + "_" + information.App_type + "_" + information.Address + "_" + information.Port + result.Msg)
+// return
