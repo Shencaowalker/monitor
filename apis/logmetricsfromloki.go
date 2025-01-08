@@ -15,15 +15,32 @@ import (
 	"github.com/spf13/viper"
 )
 
+// swagger:route UpdatetargetlogMetrics
+//
+//	获取consul注册的单个告警项目 ,进行告警任务项下线
+//
+// This will show all available pets by default.
+//
+//	    Schemes: http, https
+//
+//	    Responses:
+//	      503: "执行删除alarm " + id + "任务失败"
+//	      200: "删除alarm " + id + " 成功"
+//		  504: 等待进程退出失败
+
 func UpdatetargetlogMetrics(config *viper.Viper) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		log.Println("调用接口产出日志")
 		var result methods.Resp
 
 		// logs_lists := config.GetStringMap("mixedformat.logs")
+		// 获取待收集日志指标项目
 		logs_lists := config.GetStringSlice("mixedformat.logs")
+		// 日志指标项统计区间
 		collectionscopeseconds := config.GetString("mixedformat.collectionscopeseconds")
+		// 设置延迟时间，主要是为了防止loli日志不能及时被查询，延迟时间间隔进行日志收取
 		latencycollectionseconds := config.GetString("mixedformat.latencycollectionseconds")
+		// loki地址
 		lokiipport := config.GetString("mixedformat.lokiipport")
 
 		log.Println(logs_lists)
@@ -41,19 +58,21 @@ func UpdatetargetlogMetrics(config *viper.Viper) func(writer http.ResponseWriter
 
 			label_len, _ := strconv.Atoi(config.GetString("mixedformat.label_len"))
 			lokire_string := ""
-
+			// 是否进行string模糊匹配
 			if len(lokire) != 0 {
 				for _, j := range lokire {
 					lokire_string += "|~`" + j + "`"
 				}
 			}
+			// 是否进行string 剔除匹配
 			if len(lokiexclre) != 0 {
 				for _, j := range lokiexclre {
 					lokire_string += "!~`" + j + "`"
 				}
 			}
-
-			recordslimit := config.GetString("can_logs.recordslimit")
+			// 获取每次查询loki的日志条数限制
+			recordslimit := config.GetString(i + ".recordslimit")
+			// 进行loki查询
 			data, err := methods.Getlogfromlokippre(lokiipport, label_list, time.Now(), latencycollectionseconds, collectionscopeseconds, recordslimit, lokire_string)
 			if err != nil {
 				result.Msg = err.Error()
@@ -67,6 +86,7 @@ func UpdatetargetlogMetrics(config *viper.Viper) func(writer http.ResponseWriter
 
 				// errorlognum := "errorlognum{name=\"" + i + "\",type=\"" + lokire_string + "\"} " + strconv.Itoa(len(data)) + "\n"
 				errorlognum := "errorlognum{name=\"" + i + "\",type=\"" + lokire_string + "\""
+				// 查看需要生成的指标项的数量
 				if len(showlabelvaluelists) != 0 {
 					var showlabelvaluedict = make(map[string][]string, len(showlabelvaluelists))
 					for _, showlabelvalue := range showlabelvaluelists {

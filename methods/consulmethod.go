@@ -15,6 +15,7 @@ type Resp struct {
 	Msg  string `json:"msg"`
 }
 
+// 注册用监控项内容
 type Registration_nformation struct {
 	Id       string `json:"id"`
 	Group    string `json:"group"`
@@ -27,18 +28,22 @@ type Registration_nformation struct {
 	App_type string `json:"App_type"`
 }
 
+// 注册用监控项内容列表
 type Registration_nformations struct {
 	Values []Registration_nformation `json:"values"`
 }
 
+// 下线监控项列表
 type Ddownline_nformations struct {
 	Itemids []string `"itemids"`
 }
 
+// 下线高境项列表
 type Ddownline_alarms struct {
 	Alarmids []string `"alarmids"`
 }
 
+// 注册告警项内容
 type Registration_Alarm struct {
 	Alert  string `json:"alert"`
 	Expr   string `json:"expr"`
@@ -53,10 +58,19 @@ type Registration_Alarm struct {
 		Summary     string `json:"summary"`
 	} `json:"annotations"`
 }
+
+// 注册告警项内容
 type Registration_Alarms struct {
 	Values []Registration_Alarm `json:"values"`
 }
 
+// swagger:route isPhoneNum
+//
+//	手机号格式校验
+//
+// This will show all available pets by default.
+//
+// return  true or false
 func isPhoneNum(s string) bool {
 	// 手机号正则表达式
 	pattern := `^1[3456789]\d{9}$`
@@ -64,6 +78,18 @@ func isPhoneNum(s string) bool {
 	return reg.MatchString(s)
 }
 
+// swagger:route ConsulregisterItem
+//
+//	获取请求json 拆分后进行consul 接口内容重组并注册监控项
+//
+// This will show all available pets by default.
+//
+//	    Schemes: http, https
+//
+//	    Responses:
+//	      503: 执行注册consul item任务项 任务失败
+//	      200: 注册item成功/返回consul自己返回的返回值
+//		  504: 等待进程退出失败
 func ConsulregisterItem(config *viper.Viper, information Registration_nformation) (result Resp) {
 	var json_value string
 	if isPhoneNum(information.Phone) {
@@ -99,6 +125,18 @@ func ConsulregisterItem(config *viper.Viper, information Registration_nformation
 	return
 }
 
+// swagger:route ConsuldownlineItem
+//
+//	获取consul 注册的单个任务id ,进行监控任务项下线
+//
+// This will show all available pets by default.
+//
+//	    Schemes: http, https
+//
+//	    Responses:
+//	      503: "执行删除items " + id + "任务失败"
+//	      200: 删除consul任务成功/返回consul自己返回的返回值
+//		  504: 等待进程退出失败
 func ConsuldownlineItem(config *viper.Viper, id string) (result Resp) {
 	deleteservicecmd := exec.Command("curl", "-XPUT", "http://"+config.GetString("global.consulipport")+"/v1/agent/service/deregister/"+id)
 	stdout, _ := deleteservicecmd.StdoutPipe()
@@ -128,6 +166,18 @@ func ConsuldownlineItem(config *viper.Viper, id string) (result Resp) {
 	return
 }
 
+// swagger:route ConsulregisterAlarm
+//
+//	获取请求json 拆分后进行consul 接口内容重组并注册告警指标
+//
+// This will show all available pets by default.
+//
+//	    Schemes: http, https
+//
+//	    Responses:
+//	      503: 执行注册consul alarm 任务失败
+//	      200: 注册alarm成功/返回consul自己返回的返回值
+//		  504: 等待进程退出失败
 func ConsulregisterAlarm(config *viper.Viper, information Registration_Alarm) (result Resp) {
 	json_value := "{\"alert\": \"" + information.Alert + "\",\"expr\": \"" + information.Expr + "\",\"for\": \"" + information.For + "\",\"labels\":{\"severity\":\"" + information.Labels.Severity + "\",\"env\":\"" + information.Labels.Env + "\",\"project\":\"" + information.Labels.Project + "\"},\"annotations\":{\"description\":\"" + information.Annotations.Description + "\",\"summary\":\"" + information.Annotations.Summary + "\"}}"
 	log.Println("注册consul alarn 的json:" + json_value)
@@ -158,6 +208,18 @@ func ConsulregisterAlarm(config *viper.Viper, information Registration_Alarm) (r
 	return
 }
 
+// swagger:route ConsuldownlineAlarm
+//
+//	获取consul注册的单个告警项目 ,进行告警任务项下线
+//
+// This will show all available pets by default.
+//
+//	    Schemes: http, https
+//
+//	    Responses:
+//	      503: "执行删除alarm " + id + "任务失败"
+//	      200: "删除alarm " + id + " 成功"
+//		  504: 等待进程退出失败
 func ConsuldownlineAlarm(config *viper.Viper, id string) (result Resp) {
 	deleteservicecmd := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.consulipport")+"/v1/kv/prometheus/rules/"+id)
 	stdout, _ := deleteservicecmd.StdoutPipe()
