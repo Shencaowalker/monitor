@@ -2,7 +2,7 @@ postgres:
   is_install: true
   service_port: 5432
   server:
-    - 127.0.0.1
+    - 10.5.100.3
   username: postgres
   password: postgres
   service: null
@@ -56,7 +56,6 @@ postgres:
         sql_content: "select count(*) from pg_stat_activity where wait_event_type is not null and now()-state_change > interval '10 second'"
         help: "The number of transactions is currently wait_event than 10s seconds"
         name: "current_wait_event_10s_idle_transactions"
-
 
 install_dir: /data
 

@@ -33,9 +33,9 @@ func UpdatetargetlogMetrics(config *viper.Viper) func(writer http.ResponseWriter
 		log.Println("调用接口产出日志")
 		var result methods.Resp
 
-		// logs_lists := config.GetStringMap("mixedformat.logs")
+		// logs_lists := config.GetStringMap("mixedformat.requestlogs")
 		// 获取待收集日志指标项目
-		logs_lists := config.GetStringSlice("mixedformat.logs")
+		logs_lists := config.GetStringSlice("mixedformat.requestlogs")
 		// 日志指标项统计区间
 		collectionscopeseconds := config.GetString("mixedformat.collectionscopeseconds")
 		// 设置延迟时间，主要是为了防止loli日志不能及时被查询，延迟时间间隔进行日志收取

@@ -3,6 +3,8 @@ package apis
 import (
 	"monitor/methods"
 	"net/http"
+
+	"github.com/spf13/viper"
 )
 
 // 定义指标
@@ -22,7 +24,7 @@ import (
 // 	[]string{"device"},
 // )
 
-func Exporterexamaaa() http.Handler {
+func Exporterexam(config *viper.Viper) http.Handler {
 	// methods.PgQueryMetrics(methods.Viper_reader(), methods.Db_Collect_Postgres(methods.Viper_reader()))
 	// prometheus.MustRegister(aaa[0])
 	// methods.MustRegisterOnce(methods.Viper_reader(), methods.Db_Collect_Postgres(methods.Viper_reader()))
@@ -40,6 +42,8 @@ func Exporterexamaaa() http.Handler {
 	// 		time.Sleep(1 * time.Minute)
 	// 	}
 	// }()
-	return methods.MustRegisterOnce(methods.Viper_reader(), methods.Db_Collect_Postgres(methods.Viper_reader()))
-
+	// methods.PostgresqlMustRegisterOnce(methods.Viper_reader(), methods.Db_Collect_Postgres(methods.Viper_reader()))
+	methods.ReLogNumMustRegisterOnce(config)
+	methods.NacosMustRegisterOnce(config)
+	return methods.MustRegisterOnce()
 }
