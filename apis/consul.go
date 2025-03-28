@@ -64,7 +64,7 @@ func RegisteredItems(config *viper.Viper) func(writer http.ResponseWriter, reque
 }
 
 // 接收x-www-form-urlencoded类型的post请求或者普通get请求进行批量下线
-// 例如：/downlineitem?itemid=100.100.100.100_air_100.100.100.100_9100&itemid=100.100.100.101_air_100.100.100.101_9100  会删除两个，多写会顺序删除多个
+// 例如：/downlineitemsget?itemid=100.100.100.100_air_100.100.100.100_9100&itemid=100.100.100.101_air_100.100.100.101_9100  会删除两个，多写会顺序删除多个
 func DownlineItemsget(config *viper.Viper) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		request.ParseForm()

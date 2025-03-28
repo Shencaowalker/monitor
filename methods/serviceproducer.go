@@ -25,7 +25,7 @@ type ProducerJson struct {
 	} `json:"serviceList"`
 }
 
-//调用nacos接口得到某一个服务的ProducerJson
+// 调用nacos接口得到某一个服务的ProducerJson
 func GetserviceproducerlistJson(config *viper.Viper, servicename string) ProducerJson {
 	var producerjson ProducerJson
 	url := "http://" + config.GetString("global.nacosip") + ":" + config.GetString("global.nacosport") + "/nacos/v1/ns/catalog/services?hasIpCount=true&withInstances=false&pageNo=" + config.GetString("global.pageNo") + "&pageSize=" + config.GetString("global.pageSize") + "&serviceNameParam=providers.*" + servicename + "&groupNameParam=&namespaceId=" + config.GetString("global.namespaceId")
@@ -55,7 +55,7 @@ func GetserviceproducerlistJson(config *viper.Viper, servicename string) Produce
 	return producerjson
 }
 
-//判断当前nacos中某一服务的生产者跟基线配置区别，写到Status.txt 指标文件中
+// 判断当前nacos中某一服务的生产者跟基线配置区别，写到Status.txt 指标文件中
 func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 	currentserviceproducer := GetserviceproducerlistJson(config, servicename)
 	serviceProducerList := config.GetStringMapString(servicename + ".serviceList")
@@ -76,7 +76,7 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 		aironserviceproducerhealthycount = "aironserviceproducerhealthycount{name=\"" + i + "\",healthytcount=\"0\"" + ",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "0" + "\n"
 		for _, k := range currentserviceproducer.ServiceList {
 			if i == k.Name {
-				if normalcount == k.HealthyInstanceCount {
+				if normalcount >= k.HealthyInstanceCount {
 					aironserviceproducerhealthycount = "aironserviceproducerhealthycount{name=\"" + i + "\",healthytcount=\"" + strconv.Itoa(k.HealthyInstanceCount) + "\",servicename=\"" + servicename + "\",notifiedperson=\"" + config.GetString(servicename+".notifiedperson") + "\",normalcount=\"" + j + "\"} " + "2" + "\n"
 					break
 				} else if k.HealthyInstanceCount > 0 {
@@ -93,7 +93,36 @@ func Contrast(config *viper.Viper, servicename string, serviceStatus *os.File) {
 	}
 }
 
-//更新pushgateway指标信息 改成根据指标来进行
+// nacos中某一服务的生产者数量跟基线数量对比，并把lable status 返回出来
+func NacosServerContrast(currentserviceproducer ProducerJson, serviceProducerList map[string]string) (status, currentcount, normalcount float64) {
+	if currentcount := len(serviceProducerList); currentcount == currentserviceproducer.Count {
+		return 1, float64(currentserviceproducer.Count), float64(currentcount)
+	} else {
+		return 0, float64(currentserviceproducer.Count), float64(currentcount)
+	}
+}
+
+// "healthytcount", "producer_name", "normalcount", "servicename"
+// nacos中某一服务的单个生产者的数量跟基线数量对比，并把lable status 返回出来
+func NacosServerProducerContrast(currentserviceproducer ProducerJson, producername, producernum string) (status, healthytcount, normalcount float64, producer_name string) {
+	normalcountint, _ := strconv.Atoi(producernum)
+	normalcount = float64(normalcountint)
+	healthytcount = 0
+	for _, k := range currentserviceproducer.ServiceList {
+		if producername == k.Name {
+			healthytcount = float64(k.HealthyInstanceCount)
+			if k.HealthyInstanceCount >= normalcountint {
+				status = 2
+			} else if k.HealthyInstanceCount > 0 {
+				status = 1
+			}
+		}
+	}
+	producer_name = producername
+	return
+}
+
+// 更新pushgateway指标信息 改成根据指标来进行
 func UpdateNacosMetrics(config *viper.Viper, filename string, metricsname string) error {
 	deletecmd := exec.Command("curl", "-XDELETE", "http://"+config.GetString("global.pushgatewayipport")+"/metrics/job/"+metricsname)
 	err := deletecmd.Run()
@@ -116,14 +145,14 @@ func UpdateNacosMetrics(config *viper.Viper, filename string, metricsname string
 	}
 }
 
-//把map转换为json ，再把json转换成字符串并返回
+// 把map转换为json ，再把json转换成字符串并返回
 func MapToJson(param map[string]string) string {
 	dataType, _ := json.Marshal(param)
 	dataString := string(dataType)
 	return dataString
 }
 
-//把当前nacos配置更新内存中.
+// 把当前nacos配置更新内存中.
 func Modifyonserviceconf(servicename string, config *viper.Viper) {
 	currentserviceproducer := GetserviceproducerlistJson(config, servicename)
 	currentproducerlist := make(map[string]string)
@@ -133,19 +162,19 @@ func Modifyonserviceconf(servicename string, config *viper.Viper) {
 	config.Set(servicename+".serviceList", MapToJson(currentproducerlist))
 }
 
-//配置回写，更新基线配置
+// 配置回写，更新基线配置
 func Writebackserviceconf(config *viper.Viper) error {
 	error := config.WriteConfig()
 	return error
 }
 
-//备份老配置文件，并以时间戳跟触发发版的服务拼接命名 适用于弹性环境服务
+// 备份老配置文件，并以时间戳跟触发发版的服务拼接命名 适用于弹性环境服务
 func Backelasticityconf(servicename string, config *viper.Viper) error {
 	error := config.WriteConfigAs(time.Now().Format("20060102150405") + "_" + servicename + "change.ini")
 	return error
 }
 
-//备份老配置文件，并以时间戳命名  适用于生产环境
+// 备份老配置文件，并以时间戳命名  适用于生产环境
 func Backproduceconf(config *viper.Viper) error {
 	error := config.WriteConfigAs(time.Now().Format("20060102150405") + ".ini")
 	return error
