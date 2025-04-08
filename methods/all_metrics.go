@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -111,6 +114,326 @@ func ReLogNumMustRegisterOnce(config *viper.Viper) {
 				if err != nil {
 					return err
 				}
+			}
+
+			duration, err := time.ParseDuration(config.GetString("mixedformat.cycle"))
+			// fmt.Println(config.GetString("postgres.metrics.cycle"))
+			if err != nil {
+				panic(err)
+			}
+			time.Sleep(duration)
+			RequestLogFilter.Reset()
+		}
+	}()
+
+	prometheus.MustRegister(RequestLogFilter)
+}
+
+// 获取request请求值
+func ReLogNumMustRegisterOncewithurl(config *viper.Viper) {
+	// defer db.Close()
+	log.Println("调用接口产出日志")
+	// logs_lists := config.GetStringMap("mixedformat.requestlogs")
+	// 获取待收集日志指标项目
+	logs_lists := config.GetStringSlice("mixedformat.requestlogs")
+	// 日志指标项统计区间
+	collectionscopeseconds := config.GetString("mixedformat.collectionscopeseconds")
+	// 设置延迟时间，主要是为了防止loli日志不能及时被查询，延迟时间间隔进行日志收取
+	latencycollectionseconds := config.GetString("mixedformat.latencycollectionseconds")
+	// loki地址
+	lokiipport := config.GetString("mixedformat.lokiipport")
+	RequestLogFilternew := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "request_log_num_with_interface",
+			Help: "Log query based on labels",
+		},
+		[]string{"name", "url", "traceidwithskywalking", "traceidwiithaloudata", "responsecode", "starttime", "apiurl"},
+	)
+
+	go func() error {
+		for {
+			for _, i := range logs_lists {
+				// log_pro := i
+				label_list := config.GetStringMap(i + ".label_list")
+				lokire := config.GetStringSlice(i + ".lokire")
+				lokiexclre := config.GetStringSlice(i + ".lokiexclre")
+				lokire_string := ""
+				// 是否进行string模糊匹配
+				if len(lokire) != 0 {
+					for _, j := range lokire {
+						lokire_string += "|~`" + j + "`"
+					}
+				}
+				// 是否进行string 剔除匹配
+				if len(lokiexclre) != 0 {
+					for _, j := range lokiexclre {
+						lokire_string += "!~`" + j + "`"
+					}
+				}
+				// 获取每次查询loki的日志条数限制
+				recordslimit := config.GetString(i + ".recordslimit")
+				// 进行loki查询,返回匹配的值列表
+				data, url, _ := Getlogandurlfromloki(lokiipport, label_list, time.Now(), latencycollectionseconds, collectionscopeseconds, recordslimit, lokire_string)
+
+				log.Println(i, "的数据是:", len(data))
+				for _, jj := range data {
+					var aaa map[string]string
+					aaa = make(map[string]string)
+
+					// reg, err = regexp.Compile("(\\d+-\\d+-\\d+\\s\\S+)\\s\\[(.*?)\\]\\s\\[.*?\\]\\s(\\w+)\\s+(\\S+)\\s-\\s(.*)")
+					regex := config.GetString(i + ".regex")
+					reg, err := regexp.Compile(regex)
+					if err != nil {
+						fmt.Printf("正则表达式编译错误: %v\n", err)
+						continue
+					}
+					// 获取子匹配总数
+					submatchCount := reg.NumSubexp()
+					if submatchCount == 0 {
+						fmt.Println("警告: 正则表达式不包含捕获组")
+						continue
+					}
+					label_name := config.GetString("mixedformat.requestlogslabel_name")
+					value_label := config.GetString(i + ".value_label")
+
+					customNames := strings.Split(label_name, " ")
+					// 验证名称数量
+					if len(customNames) != submatchCount {
+						fmt.Printf("错误: 需要%d个标签，但输入了%d个\n", submatchCount, len(customNames))
+						continue
+					}
+					matches := reg.FindAllStringSubmatch(jj, len(label_name)+1)
+					if matches == nil {
+						fmt.Println("没有找到匹配项")
+						continue
+					}
+					for _, m := range matches {
+						for i := 1; i < len(m); i++ {
+							name := customNames[i-1]
+							aaa[name] = m[i]
+						}
+					}
+					value, _ := strconv.Atoi((aaa[value_label]))
+					valuefloat64 := float64(value)
+					err = GetdatetargetlogMetricnew(RequestLogFilternew, url, i, aaa["traceidwithskywalking"], aaa["traceidwiithaloudata"], aaa["responsecode"], aaa["starttime"], aaa["url"], valuefloat64)
+					if err != nil {
+						panic(err)
+					}
+				}
+
+			}
+
+			duration, err := time.ParseDuration(config.GetString("mixedformat.cycle"))
+			// fmt.Println(config.GetString("postgres.metrics.cycle"))
+			if err != nil {
+				panic(err)
+			}
+			time.Sleep(duration)
+			RequestLogFilternew.Reset()
+		}
+	}()
+
+	prometheus.MustRegister(RequestLogFilternew)
+}
+
+// 获取报错记录数
+func ReLogNumErrorwithurl(config *viper.Viper) {
+	// defer db.Close()
+	log.Println("调用接口产出日志")
+	// logs_lists := config.GetStringMap("mixedformat.requestlogs")
+	// 获取待收集日志指标项目
+	logs_lists := config.GetStringSlice("mixedformat.errorlogs")
+	// 日志指标项统计区间
+	collectionscopeseconds := config.GetString("mixedformat.collectionscopeseconds")
+	// 设置延迟时间，主要是为了防止loli日志不能及时被查询，延迟时间间隔进行日志收取
+	latencycollectionseconds := config.GetString("mixedformat.latencycollectionseconds")
+	// loki地址
+	lokiipport := config.GetString("mixedformat.lokiipport")
+	RequestLogFiltererror := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "error_logs",
+			Help: "collect error logs",
+		},
+		[]string{"name", "url", "traceidwithskywalking", "traceidwiithaloudata", "errormsg", "starttime"},
+	)
+
+	go func() error {
+		for {
+			for _, i := range logs_lists {
+				// log_pro := i
+				label_list := config.GetStringMap(i + ".label_list")
+				lokire := config.GetStringSlice(i + ".lokire")
+				lokiexclre := config.GetStringSlice(i + ".lokiexclre")
+				lokire_string := ""
+				// 是否进行string模糊匹配
+				if len(lokire) != 0 {
+					for _, j := range lokire {
+						lokire_string += "|~`" + j + "`"
+					}
+				}
+				// 是否进行string 剔除匹配
+				if len(lokiexclre) != 0 {
+					for _, j := range lokiexclre {
+						lokire_string += "!~`" + j + "`"
+					}
+				}
+				// 获取每次查询loki的日志条数限制
+				recordslimit := config.GetString(i + ".recordslimit")
+				// 进行loki查询,返回匹配的值列表
+				data, url, _ := Getlogandurlfromloki(lokiipport, label_list, time.Now(), latencycollectionseconds, collectionscopeseconds, recordslimit, lokire_string)
+
+				log.Println(i, "的数据是:", len(data))
+				for _, jj := range data {
+					var aaa map[string]string
+					aaa = make(map[string]string)
+
+					// reg, err = regexp.Compile("(\\d+-\\d+-\\d+\\s\\S+)\\s\\[(.*?)\\]\\s\\[.*?\\]\\s(\\w+)\\s+(\\S+)\\s-\\s(.*)")
+					regex := config.GetString(i + ".regex")
+					reg, err := regexp.Compile(regex)
+					if err != nil {
+						fmt.Printf("正则表达式编译错误: %v\n", err)
+						continue
+					}
+					// 获取子匹配总数
+					submatchCount := reg.NumSubexp()
+					if submatchCount == 0 {
+						fmt.Println("警告: 正则表达式不包含捕获组")
+						continue
+					}
+					label_name := config.GetString("mixedformat.errorlogslabel_name")
+					// value_label := config.GetString(i + ".value_label")
+
+					customNames := strings.Split(label_name, " ")
+					// 验证名称数量
+					if len(customNames) != submatchCount {
+						fmt.Printf("错误: 需要%d个标签，但输入了%d个\n", submatchCount, len(customNames))
+						continue
+					}
+					matches := reg.FindAllStringSubmatch(jj, len(customNames)+1)
+					if matches == nil {
+						fmt.Println("没有找到匹配项")
+						continue
+					}
+					for _, m := range matches {
+						for i := 1; i < len(m); i++ {
+							name := customNames[i-1]
+							aaa[name] = m[i]
+						}
+					}
+					valuefloat64 := float64(1)
+					err = GetdatetargetlogMetricerror(RequestLogFiltererror, i, url, aaa["traceidwithskywalking"], aaa["traceidwiithaloudata"], aaa["errormsg"], aaa["starttime"], valuefloat64)
+					if err != nil {
+						panic(err)
+					}
+				}
+
+			}
+
+			duration, err := time.ParseDuration(config.GetString("mixedformat.cycle"))
+			// fmt.Println(config.GetString("postgres.metrics.cycle"))
+			if err != nil {
+				panic(err)
+			}
+			time.Sleep(duration)
+			RequestLogFiltererror.Reset()
+		}
+	}()
+	prometheus.MustRegister(RequestLogFiltererror)
+}
+
+// 获取查询各个阶段的耗时指标
+func ReLogCostquerystageswithurl(config *viper.Viper) {
+	// defer db.Close()
+	log.Println("调用接口产出日志")
+	// logs_lists := config.GetStringMap("mixedformat.requestlogs")
+	// 获取待收集日志指标项目
+	logs_lists := config.GetStringSlice("mixedformat.queryphasetimelogs")
+	// 日志指标项统计区间
+	collectionscopeseconds := config.GetString("mixedformat.collectionscopeseconds")
+	// 设置延迟时间，主要是为了防止loli日志不能及时被查询，延迟时间间隔进行日志收取
+	latencycollectionseconds := config.GetString("mixedformat.latencycollectionseconds")
+	// loki地址
+	lokiipport := config.GetString("mixedformat.lokiipport")
+	RequestLogFilter := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "query_stage_cost",
+			Help: "Collect error logs",
+		},
+		[]string{"name", "url", "traceidwithskywalking", "traceidwiithaloudata", "stages", "starttime"},
+	)
+
+	go func() error {
+		for {
+			for _, i := range logs_lists {
+				// log_pro := i
+				label_list := config.GetStringMap(i + ".label_list")
+				lokire := config.GetStringSlice(i + ".lokire")
+				lokiexclre := config.GetStringSlice(i + ".lokiexclre")
+				lokire_string := ""
+				// 是否进行string模糊匹配
+				if len(lokire) != 0 {
+					for _, j := range lokire {
+						lokire_string += "|~`" + j + "`"
+					}
+				}
+				// 是否进行string 剔除匹配
+				if len(lokiexclre) != 0 {
+					for _, j := range lokiexclre {
+						lokire_string += "!~`" + j + "`"
+					}
+				}
+				// 获取每次查询loki的日志条数限制
+				recordslimit := config.GetString(i + ".recordslimit")
+				// 进行loki查询,返回匹配的值列表
+				data, url, _ := Getlogandurlfromloki(lokiipport, label_list, time.Now(), latencycollectionseconds, collectionscopeseconds, recordslimit, lokire_string)
+
+				log.Println(i, "的数据是:", len(data))
+				for _, jj := range data {
+					var aaa map[string]string
+					aaa = make(map[string]string)
+
+					// reg, err = regexp.Compile("(\\d+-\\d+-\\d+\\s\\S+)\\s\\[(.*?)\\]\\s\\[.*?\\]\\s(\\w+)\\s+(\\S+)\\s-\\s(.*)")
+					regex := config.GetString(i + ".regex")
+					reg, err := regexp.Compile(regex)
+					if err != nil {
+						fmt.Printf("正则表达式编译错误: %v\n", err)
+						continue
+					}
+					// 获取子匹配总数
+					submatchCount := reg.NumSubexp()
+					if submatchCount == 0 {
+						fmt.Println("警告: 正则表达式不包含捕获组")
+						continue
+					}
+					label_name := config.GetString("mixedformat.queryphasetimelogslabel_name")
+					value_label := config.GetString(i + ".value_label")
+
+					customNames := strings.Split(label_name, " ")
+					// 验证名称数量
+					if len(customNames) != submatchCount {
+						fmt.Printf("错误: 需要%d个标签，但输入了%d个\n", submatchCount, len(customNames))
+						continue
+					}
+					matches := reg.FindAllStringSubmatch(jj, len(label_name)+1)
+					if matches == nil {
+						fmt.Println("没有找到匹配项")
+						continue
+					}
+					for _, m := range matches {
+						for i := 1; i < len(m); i++ {
+							name := customNames[i-1]
+							aaa[name] = m[i]
+						}
+					}
+
+					value, _ := strconv.Atoi((aaa[value_label]))
+					valuefloat64 := float64(value)
+					err = GetdatetargetlogMetricquerystage(RequestLogFilter, url, i, aaa["traceidwithskywalking"], aaa["traceidwiithaloudata"], aaa["stages"], aaa["starttime"], valuefloat64)
+					if err != nil {
+						panic(err)
+					}
+				}
+
 			}
 
 			duration, err := time.ParseDuration(config.GetString("mixedformat.cycle"))

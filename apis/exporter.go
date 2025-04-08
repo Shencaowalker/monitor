@@ -43,7 +43,10 @@ func Exporterexam(config *viper.Viper) http.Handler {
 	// 	}
 	// }()
 	// methods.PostgresqlMustRegisterOnce(methods.Viper_reader(), methods.Db_Collect_Postgres(methods.Viper_reader()))
-	methods.ReLogNumMustRegisterOnce(config)
+	// methods.ReLogNumMustRegisterOnce(config)
+	methods.ReLogNumMustRegisterOncewithurl(config)
+	methods.ReLogCostquerystageswithurl(config)
+	methods.ReLogNumErrorwithurl(config)
 	methods.NacosMustRegisterOnce(config)
 	return methods.MustRegisterOnce()
 }

@@ -17,8 +17,6 @@ import (
 
 // swagger:route UpdatetargetlogMetrics
 //
-//	获取consul注册的单个告警项目 ,进行告警任务项下线
-//
 // This will show all available pets by default.
 //
 //	    Schemes: http, https
